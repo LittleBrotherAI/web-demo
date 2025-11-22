@@ -169,7 +169,7 @@ export default defineEventHandler(async (event) => {
           .join('\n')
 
         const modelAnswer = modelMessage.parts
-          .filter(part => part.type === 'reasoning')
+          .filter(part => part.type === 'text')
           .map(part => part.text)
           .join('\n')
 

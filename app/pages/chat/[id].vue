@@ -73,6 +73,36 @@ function copy(e: MouseEvent, message: UIMessage) {
   }, 2000)
 }
 
+// Mock monitoring data for the latest assistant message
+const latestMonitoringResult = computed(() => {
+  const assistantMessages = chat.messages.filter(m => m.role === 'assistant')
+  if (assistantMessages.length === 0) return null
+
+  const latestMessage = assistantMessages[assistantMessages.length - 1]
+
+  // Mock data - this will be replaced with actual API calls later
+  if (chat.status === 'streaming') {
+    return {
+      status: 'pending' as const,
+      messageId: latestMessage.id
+    }
+  }
+
+  return {
+    status: 'completed' as const,
+    messageId: latestMessage.id,
+    coverage: 0.85,
+    legibility: 0.92,
+    issues: [
+      {
+        type: 'info' as const,
+        message: 'Reasoning shows good logical flow from premises to conclusion'
+      }
+    ],
+    completedAt: new Date().toISOString()
+  }
+})
+
 onMounted(() => {
   if (data.value?.messages.length === 1) {
     chat.regenerate()
@@ -81,71 +111,78 @@ onMounted(() => {
 </script>
 
 <template>
-  <UDashboardPanel id="chat" class="relative" :ui="{ body: 'p-0 sm:p-0' }">
-    <template #header>
-      <DashboardNavbar />
-    </template>
+  <UDashboardGroup unit="rem">
+    <UDashboardPanel id="chat" class="relative" :ui="{ body: 'p-0 sm:p-0' }">
+      <template #header>
+        <DashboardNavbar />
+      </template>
 
-    <template #body>
-      <UContainer class="flex-1 flex flex-col gap-4 sm:gap-6">
-        <SessionWarningBanner class="lg:pt-(--ui-header-height)" />
+      <template #body>
+        <UContainer class="flex-1 flex flex-col gap-4 sm:gap-6">
+          <SessionWarningBanner class="lg:pt-(--ui-header-height)" />
 
-        <UChatMessages
-          should-auto-scroll
-          :messages="chat.messages"
-          :status="chat.status"
-          :assistant="chat.status !== 'streaming' ? { actions: [{ label: 'Copy', icon: copied ? 'i-lucide-copy-check' : 'i-lucide-copy', onClick: copy }] } : { actions: [] }"
-          :spacing-offset="160"
-          class="lg:pt-(--ui-header-height) pb-4 sm:pb-6"
-        >
-          <template #content="{ message }">
-            <div class="*:first:mt-0 *:last:mb-0">
-              <template v-for="(part, index) in message.parts" :key="`${message.id}-${part.type}-${index}${'state' in part ? `-${part.state}` : ''}`">
-                <Reasoning
-                  v-if="part.type === 'reasoning'"
-                  :text="part.text"
-                  :is-streaming="part.state !== 'done'"
-                />
-                <MDCCached
-                  v-else-if="part.type === 'text'"
-                  :value="part.text"
-                  :cache-key="`${message.id}-${index}`"
-                  :components="components"
-                  :parser-options="{ highlight: false }"
-                  class="*:first:mt-0 *:last:mb-0"
-                />
-                <ToolWeather
-                  v-else-if="part.type === 'tool-weather'"
-                  :invocation="(part as WeatherUIToolInvocation)"
-                />
-                <ToolChart
-                  v-else-if="part.type === 'tool-chart'"
-                  :invocation="(part as ChartUIToolInvocation)"
-                />
-              </template>
-            </div>
-          </template>
-        </UChatMessages>
+          <UChatMessages
+            should-auto-scroll
+            :messages="chat.messages"
+            :status="chat.status"
+            :assistant="chat.status !== 'streaming' ? { actions: [{ label: 'Copy', icon: copied ? 'i-lucide-copy-check' : 'i-lucide-copy', onClick: copy }] } : { actions: [] }"
+            :spacing-offset="160"
+            class="lg:pt-(--ui-header-height) pb-4 sm:pb-6"
+          >
+            <template #content="{ message }">
+              <div class="*:first:mt-0 *:last:mb-0">
+                <template v-for="(part, index) in message.parts" :key="`${message.id}-${part.type}-${index}${'state' in part ? `-${part.state}` : ''}`">
+                  <Reasoning
+                    v-if="part.type === 'reasoning'"
+                    :text="part.text"
+                    :is-streaming="part.state !== 'done'"
+                  />
+                  <MDCCached
+                    v-else-if="part.type === 'text'"
+                    :value="part.text"
+                    :cache-key="`${message.id}-${index}`"
+                    :components="components"
+                    :parser-options="{ highlight: false }"
+                    class="*:first:mt-0 *:last:mb-0"
+                  />
+                  <ToolWeather
+                    v-else-if="part.type === 'tool-weather'"
+                    :invocation="(part as WeatherUIToolInvocation)"
+                  />
+                  <ToolChart
+                    v-else-if="part.type === 'tool-chart'"
+                    :invocation="(part as ChartUIToolInvocation)"
+                  />
+                </template>
+              </div>
+            </template>
+          </UChatMessages>
 
-        <UChatPrompt
-          v-model="input"
-          :error="chat.error"
-          variant="subtle"
-          class="sticky bottom-0 [view-transition-name:chat-prompt] rounded-b-none z-10"
-          @submit="handleSubmit"
-        >
-          <template #footer>
-            <ModelSelect v-model="model" />
+          <UChatPrompt
+            v-model="input"
+            :error="chat.error"
+            variant="subtle"
+            class="sticky bottom-0 [view-transition-name:chat-prompt] rounded-b-none z-10"
+            @submit="handleSubmit"
+          >
+            <template #footer>
+              <ModelSelect v-model="model" />
 
-            <UChatPromptSubmit
-              :status="chat.status"
-              color="neutral"
-              @stop="chat.stop()"
-              @reload="chat.regenerate()"
-            />
-          </template>
-        </UChatPrompt>
-      </UContainer>
-    </template>
-  </UDashboardPanel>
+              <UChatPromptSubmit
+                :status="chat.status"
+                color="neutral"
+                @stop="chat.stop()"
+                @reload="chat.regenerate()"
+              />
+            </template>
+          </UChatPrompt>
+        </UContainer>
+      </template>
+    </UDashboardPanel>
+
+    <MonitoringSidebar
+      :result="latestMonitoringResult"
+      :message-id="latestMonitoringResult?.messageId"
+    />
+  </UDashboardGroup>
 </template>
