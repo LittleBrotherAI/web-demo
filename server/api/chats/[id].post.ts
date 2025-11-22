@@ -142,6 +142,7 @@ export default defineEventHandler(async (event) => {
       )
     },
     onFinish: async ({ messages }) => {
+      // store message in database
       await db.insert(tables.messages).values(
         messages.map(message => ({
           chatId: chat.id,
@@ -149,6 +150,45 @@ export default defineEventHandler(async (event) => {
           parts: message.parts
         }))
       )
+
+      // ENTRYPOINT:
+      const userMessage = messages.find(m => m.role === 'user')
+      const modelMessage = messages.find(m => m.role === 'assistant')
+
+      if (userMessage && modelMessage) {
+        const monitoringUrl = process.env.MONITORING_URL // the python api
+
+        const userPrompt = userMessage.parts
+          .filter(part => part.type === 'text')
+          .map(part => part.text)
+          .join('')
+
+        const modelCot = modelMessage.parts
+          .filter(part => part.type === 'reasoning')
+          .map(part => part.text)
+          .join('\n')
+
+        const modelAnswer = modelMessage.parts
+          .filter(part => part.type === 'reasoning')
+          .map(part => part.text)
+          .join('\n')
+
+        if (monitoringUrl) {
+          console.log('sending msg to be factchecked.')
+          $fetch('/api/monitor/factcheck', {
+            baseURL: monitoringUrl,
+            method: 'POST',
+            body: {
+              user_prompt: userPrompt,
+              model_cot: modelCot,
+              model_answer: modelAnswer
+              // meta data?
+            }
+          }).catch((error) => {
+            console.error('failed to send to monitoring api:', error)
+          })
+        }
+      }
     }
   })
 

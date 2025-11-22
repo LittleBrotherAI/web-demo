@@ -3,13 +3,9 @@ export default defineEventHandler(async (event) => {
 
   // If no session ID exists, create one
   if (!session.id) {
-    const newSessionId = crypto.randomUUID()
-    console.log('[Session Middleware] Creating new session:', newSessionId)
     await setUserSession(event, {
       ...session,
-      id: newSessionId
+      id: crypto.randomUUID()
     })
-  } else {
-    console.log('[Session Middleware] Existing session:', session.id)
   }
 })

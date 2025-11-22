@@ -117,12 +117,12 @@ async function handleClear() {
 
       <div v-else class="space-y-4">
         <form class="space-y-4" @submit.prevent="handleUpdate">
-          <UFormGroup
-            label="New OpenRouter API Key"
-            help="Your API key is stored only in your browser session"
-            :error="error"
-          >
+          <div class="space-y-2">
+            <label for="new-api-key" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              New OpenRouter API Key
+            </label>
             <UInput
+              id="new-api-key"
               v-model="newApiKey"
               type="password"
               placeholder="sk-or-v1-..."
@@ -130,7 +130,13 @@ async function handleClear() {
               :disabled="loading"
               autocomplete="off"
             />
-          </UFormGroup>
+            <p v-if="error" class="text-sm text-red-500 dark:text-red-400">
+              {{ error }}
+            </p>
+            <p v-else class="text-sm text-gray-500 dark:text-gray-400">
+              Your API key is stored only in your browser session
+            </p>
+          </div>
 
           <div class="flex gap-2">
             <UButton

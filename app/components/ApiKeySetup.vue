@@ -51,12 +51,12 @@ async function handleSubmit() {
 
         <UCard :ui="{ body: 'space-y-4' }">
           <form class="space-y-4" @submit.prevent="handleSubmit">
-            <UFormGroup
-              label="OpenRouter API Key"
-              help="Your API key is stored only in your browser session and never saved to our servers"
-              :error="error"
-            >
+            <div class="space-y-2">
+              <label for="api-key" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                OpenRouter API Key
+              </label>
               <UInput
+                id="api-key"
                 v-model="apiKey"
                 type="password"
                 placeholder="sk-or-v1-..."
@@ -65,7 +65,13 @@ async function handleSubmit() {
                 autocomplete="off"
                 class="w-full"
               />
-            </UFormGroup>
+              <p v-if="error" class="text-sm text-red-500 dark:text-red-400">
+                {{ error }}
+              </p>
+              <p v-else class="text-sm text-gray-500 dark:text-gray-400">
+                Your API key is stored only in your browser session and never saved to our servers
+              </p>
+            </div>
 
             <UButton
               type="submit"

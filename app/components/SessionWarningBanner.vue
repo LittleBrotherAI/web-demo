@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const isDismissed = useState('session-warning-dismissed', () => false)
+const isDismissed = useState('session-warning-dismissed', () => true) // should be set to false here. Its kinda deactivated by default rn
 
 function dismiss() {
   isDismissed.value = true

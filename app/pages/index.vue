@@ -26,35 +26,35 @@ function onSubmit() {
   createChat(input.value)
 }
 
-const quickChats = [
-  {
-    label: 'Why use Nuxt UI?',
-    icon: 'i-logos-nuxt-icon'
-  },
-  {
-    label: 'Help me create a Vue composable',
-    icon: 'i-logos-vue'
-  },
-  {
-    label: 'Tell me more about UnJS',
-    icon: 'i-logos-unjs'
-  },
-  {
-    label: 'Why should I consider VueUse?',
-    icon: 'i-logos-vueuse'
-  },
-  {
-    label: 'Tailwind CSS best practices',
-    icon: 'i-logos-tailwindcss-icon'
-  },
-  {
-    label: 'What is the weather in Bordeaux?',
-    icon: 'i-lucide-sun'
-  },
-  {
-    label: 'Show me a chart of sales data',
-    icon: 'i-lucide-line-chart'
-  }
+const quickChats: { label: string, icon: string }[] = [
+  // {
+  //   label: 'Why use Nuxt UI?',
+  //   icon: 'i-logos-nuxt-icon'
+  // },
+  // {
+  //   label: 'Help me create a Vue composable',
+  //   icon: 'i-logos-vue'
+  // },
+  // {
+  //   label: 'Tell me more about UnJS',
+  //   icon: 'i-logos-unjs'
+  // },
+  // {
+  //   label: 'Why should I consider VueUse?',
+  //   icon: 'i-logos-vueuse'
+  // },
+  // {
+  //   label: 'Tailwind CSS best practices',
+  //   icon: 'i-logos-tailwindcss-icon'
+  // },
+  // {
+  //   label: 'What is the weather in Bordeaux?',
+  //   icon: 'i-lucide-sun'
+  // },
+  // {
+  //   label: 'Show me a chart of sales data',
+  //   icon: 'i-lucide-line-chart'
+  // }
 ]
 </script>
 
