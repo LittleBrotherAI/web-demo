@@ -6,6 +6,7 @@ import type { UIMessage } from 'ai'
 import { useClipboard } from '@vueuse/core'
 import { getTextFromMessage } from '@nuxt/ui/utils/ai'
 import ProseStreamPre from '../../components/prose/PreStream.vue'
+import type { MonitoringResult } from '~/types/monitoring'
 
 const components = {
   pre: ProseStreamPre as unknown as DefineComponent
@@ -74,24 +75,7 @@ function copy(e: MouseEvent, message: UIMessage) {
 }
 
 // Monitoring data for the latest assistant message
-interface ConsistencyResult {
-  is_consistent: boolean
-  confidence: number
-  explanation: string
-}
-
-const latestMonitoringResult = ref<{
-  messageId?: string
-  language?: number | null
-  semantics?: number | null
-  entailment?: string | null
-  surprisal?: number | null
-  reproducibility?: number | null
-  legibility_score?: number | null
-  coverage_score?: number | null
-  adversarial?: number | null
-  consistency?: ConsistencyResult | null
-} | null>(null)
+const latestMonitoringResult = ref<MonitoringResult | null>(null)
 
 const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null)
 const pollingStartTime = ref<number | null>(null)
@@ -108,17 +92,7 @@ const latestAssistantMessageId = computed(() => {
 // Poll for monitoring results
 async function pollMonitoringResults(messageId: string) {
   try {
-    const result = await $fetch<{
-      language: number | null
-      semantics: number | null
-      entailment: string | null
-      surprisal: number | null
-      reproducibility: number | null
-      legibility_score: number | null
-      coverage_score: number | null
-      adversarial: number | null
-      consistency: ConsistencyResult | null
-    }>(`/api/monitor/${messageId}`)
+    const result = await $fetch<Omit<MonitoringResult, 'messageId'>>(`/api/monitor/${messageId}`)
 
     if (result) {
       latestMonitoringResult.value = {

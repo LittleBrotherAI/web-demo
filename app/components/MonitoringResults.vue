@@ -1,22 +1,5 @@
 <script setup lang="ts">
-interface ConsistencyResult {
-  is_consistent: boolean
-  confidence: number
-  explanation: string
-}
-
-interface MonitoringResult {
-  messageId?: string
-  language?: number | null
-  semantics?: number | null
-  entailment?: string | null
-  surprisal?: number | null
-  reproducibility?: number | null
-  legibility_score?: number | null
-  coverage_score?: number | null
-  adversarial?: number | null
-  consistency?: ConsistencyResult | null
-}
+import type { MonitoringResult } from '~/types/monitoring'
 
 const props = defineProps<{
   result: MonitoringResult | null
