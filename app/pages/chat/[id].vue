@@ -76,13 +76,14 @@ function copy(e: MouseEvent, message: UIMessage) {
 // Monitoring data for the latest assistant message
 const latestMonitoringResult = ref<{
   messageId?: string
-  consistency_language?: number | null
-  consistency_semantics?: number | null
-  consistency_nli?: string | null
-  similarity?: number | null
-  understandability?: number | null
-  completed?: boolean
-  createdAt?: string
+  language?: number | null
+  semantics?: number | null
+  entailment?: string | null
+  surprisal?: number | null
+  reproducibility?: number | null
+  legibility_coverage?: number | null
+  adversarial?: number | null
+  consistency?: number | null
 } | null>(null)
 
 const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null)
@@ -101,25 +102,27 @@ const latestAssistantMessageId = computed(() => {
 async function pollMonitoringResults(messageId: string) {
   try {
     const result = await $fetch<{
-      consistency_language: number | null
-      consistency_semantics: number | null
-      consistency_nli: string | null
-      similarity: number | null
-      understandability: number | null
-      completed: boolean
-      createdAt?: string
+      language: number | null
+      semantics: number | null
+      entailment: string | null
+      surprisal: number | null
+      reproducibility: number | null
+      legibility_coverage: number | null
+      adversarial: number | null
+      consistency: number | null
     }>(`/api/monitor/${messageId}`)
 
     if (result) {
       latestMonitoringResult.value = {
         messageId,
-        consistency_language: result.consistency_language,
-        consistency_semantics: result.consistency_semantics,
-        consistency_nli: result.consistency_nli,
-        similarity: result.similarity,
-        understandability: result.understandability,
-        completed: result.completed,
-        createdAt: result.createdAt
+        language: result.language,
+        semantics: result.semantics,
+        entailment: result.entailment,
+        surprisal: result.surprisal,
+        reproducibility: result.reproducibility,
+        legibility_coverage: result.legibility_coverage,
+        adversarial: result.adversarial,
+        consistency: result.consistency
       }
     }
   } catch (error) {
@@ -128,12 +131,14 @@ async function pollMonitoringResults(messageId: string) {
     if (!latestMonitoringResult.value) {
       latestMonitoringResult.value = {
         messageId,
-        consistency_language: null,
-        consistency_semantics: null,
-        consistency_nli: null,
-        similarity: null,
-        understandability: null,
-        completed: false
+        language: null,
+        semantics: null,
+        entailment: null,
+        surprisal: null,
+        reproducibility: null,
+        legibility_coverage: null,
+        adversarial: null,
+        consistency: null
       }
     }
   }
@@ -144,15 +149,17 @@ function startPolling(messageId: string) {
   // Stop any existing polling
   stopPolling()
 
-  // Set initial state (pending)
+  // Set initial state (pending - all monitors null)
   latestMonitoringResult.value = {
     messageId,
-    consistency_language: null,
-    consistency_semantics: null,
-    consistency_nli: null,
-    similarity: null,
-    understandability: null,
-    completed: false
+    language: null,
+    semantics: null,
+    entailment: null,
+    surprisal: null,
+    reproducibility: null,
+    legibility_coverage: null,
+    adversarial: null,
+    consistency: null
   }
 
   // Set start time
@@ -200,12 +207,14 @@ watch(() => chat.status, (status) => {
     if (messageId) {
       latestMonitoringResult.value = {
         messageId,
-        consistency_language: null,
-        consistency_semantics: null,
-        consistency_nli: null,
-        similarity: null,
-        understandability: null,
-        completed: false
+        language: null,
+        semantics: null,
+        entailment: null,
+        surprisal: null,
+        reproducibility: null,
+        legibility_coverage: null,
+        adversarial: null,
+        consistency: null
       }
     }
   }
