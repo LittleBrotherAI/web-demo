@@ -79,7 +79,7 @@ const latestMonitoringResult = ref<MonitoringResult | null>(null)
 
 const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null)
 const pollingStartTime = ref<number | null>(null)
-const POLLING_TIMEOUT = 60000 // 60 seconds
+const POLLING_TIMEOUT = 90000 // 90 seconds
 
 // Get the latest assistant message ID
 const latestAssistantMessageId = computed(() => {
@@ -157,9 +157,9 @@ function startPolling(messageId: string) {
   pollingInterval.value = setInterval(() => {
     const elapsed = Date.now() - (pollingStartTime.value || 0)
 
-    // Stop polling after 60 seconds
+    // Stop polling after 90 seconds
     if (elapsed >= POLLING_TIMEOUT) {
-      console.log('Polling timeout reached (60s)')
+      console.log('Polling timeout reached (90s)')
       stopPolling()
       return
     }
