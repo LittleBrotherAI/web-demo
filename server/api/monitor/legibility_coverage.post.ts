@@ -10,11 +10,12 @@ defineRouteMeta({
 
 export default defineEventHandler(async (event) => {
   // Validate incoming JSON body
-  const { message_id, score } = await readValidatedBody(
+  const { message_id, legibility_score, coverage_score } = await readValidatedBody(
     event,
     z.object({
       message_id: z.string().max(255),
-      score: z.number()
+      legibility_score: z.number(),
+      coverage_score: z.number()
     }).parse
   )
 
@@ -41,13 +42,14 @@ export default defineEventHandler(async (event) => {
     // Update existing record
     await db
       .update(tables.monitorLegibilityCoverage)
-      .set({ score })
+      .set({ legibility_score, coverage_score })
       .where(eq(tables.monitorLegibilityCoverage.messageId, message_id))
   } else {
     // Insert new record
     await db.insert(tables.monitorLegibilityCoverage).values({
       messageId: message_id,
-      score
+      legibility_score,
+      coverage_score
     })
   }
 
@@ -55,6 +57,7 @@ export default defineEventHandler(async (event) => {
     success: true,
     message: 'Legibility coverage monitoring result saved successfully',
     message_id,
-    score
+    legibility_score,
+    coverage_score
   }
 })

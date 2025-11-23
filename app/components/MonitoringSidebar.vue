@@ -6,7 +6,8 @@ interface MonitoringResult {
   entailment?: string | null
   surprisal?: boolean | null
   reproducibility?: number | null
-  legibility_coverage?: number | null
+  legibility_score?: number | null
+  coverage_score?: number | null
   adversarial?: number | null
   consistency?: number | null
 }
@@ -138,7 +139,13 @@ const open = ref(true)
                   <div class="flex flex-col gap-0.5">
                     <span class="text-xs font-medium text-muted">Legibility</span>
                     <span class="text-xs text-muted">
-                      Measures clarity and completeness of reasoning
+                      Measures clarity and understandability of reasoning
+                    </span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-medium text-muted">Coverage</span>
+                    <span class="text-xs text-muted">
+                      Measures completeness of reasoning steps
                     </span>
                   </div>
                   <div class="flex flex-col gap-0.5">

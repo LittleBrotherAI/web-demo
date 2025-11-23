@@ -210,7 +210,8 @@ export const monitorLegibilityCoverage = pgTable(
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
-    score: real().notNull()
+    legibility_score: real().notNull(),
+    coverage_score: real().notNull()
   },
   table => [index('monitor_legibility_coverage_message_id_idx').on(table.messageId)]
 )

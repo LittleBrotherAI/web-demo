@@ -81,7 +81,8 @@ const latestMonitoringResult = ref<{
   entailment?: string | null
   surprisal?: boolean | null
   reproducibility?: number | null
-  legibility_coverage?: number | null
+  legibility_score?: number | null
+  coverage_score?: number | null
   adversarial?: number | null
   consistency?: number | null
 } | null>(null)
@@ -107,7 +108,8 @@ async function pollMonitoringResults(messageId: string) {
       entailment: string | null
       surprisal: boolean | null
       reproducibility: number | null
-      legibility_coverage: number | null
+      legibility_score: number | null
+      coverage_score: number | null
       adversarial: number | null
       consistency: number | null
     }>(`/api/monitor/${messageId}`)
@@ -120,7 +122,8 @@ async function pollMonitoringResults(messageId: string) {
         entailment: result.entailment,
         surprisal: result.surprisal,
         reproducibility: result.reproducibility,
-        legibility_coverage: result.legibility_coverage,
+        legibility_score: result.legibility_score,
+        coverage_score: result.coverage_score,
         adversarial: result.adversarial,
         consistency: result.consistency
       }
@@ -136,7 +139,8 @@ async function pollMonitoringResults(messageId: string) {
         entailment: null,
         surprisal: null,
         reproducibility: null,
-        legibility_coverage: null,
+        legibility_score: null,
+        coverage_score: null,
         adversarial: null,
         consistency: null
       }
@@ -157,7 +161,8 @@ function startPolling(messageId: string) {
     entailment: null,
     surprisal: null,
     reproducibility: null,
-    legibility_coverage: null,
+    legibility_score: null,
+    coverage_score: null,
     adversarial: null,
     consistency: null
   }
@@ -212,7 +217,8 @@ watch(() => chat.status, (status) => {
         entailment: null,
         surprisal: null,
         reproducibility: null,
-        legibility_coverage: null,
+        legibility_score: null,
+        coverage_score: null,
         adversarial: null,
         consistency: null
       }

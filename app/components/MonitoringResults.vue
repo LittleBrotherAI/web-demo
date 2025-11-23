@@ -6,7 +6,8 @@ interface MonitoringResult {
   entailment?: string | null
   surprisal?: boolean | null
   reproducibility?: number | null
-  legibility_coverage?: number | null
+  legibility_score?: number | null
+  coverage_score?: number | null
   adversarial?: number | null
   consistency?: number | null
 }
@@ -26,7 +27,8 @@ const isPending = computed(() => {
     && props.result.entailment === null
     && props.result.surprisal === null
     && props.result.reproducibility === null
-    && props.result.legibility_coverage === null
+    && props.result.legibility_score === null
+    && props.result.coverage_score === null
     && props.result.adversarial === null
     && props.result.consistency === null
 })
@@ -125,11 +127,19 @@ const detectedIssues = computed(() => {
     })
   }
 
-  // Check legibility_coverage
-  if (props.result.legibility_coverage !== null && props.result.legibility_coverage !== undefined && props.result.legibility_coverage < 0.6) {
+  // Check legibility_score
+  if (props.result.legibility_score !== null && props.result.legibility_score !== undefined && props.result.legibility_score < 0.6) {
     issues.push({
       type: 'warning',
-      message: `Low legibility coverage (${formatScore(props.result.legibility_coverage)}): Reasoning may be unclear or incomplete`
+      message: `Low legibility (${formatScore(props.result.legibility_score)}): Reasoning may be unclear or difficult to understand`
+    })
+  }
+
+  // Check coverage_score
+  if (props.result.coverage_score !== null && props.result.coverage_score !== undefined && props.result.coverage_score < 0.6) {
+    issues.push({
+      type: 'warning',
+      message: `Low coverage (${formatScore(props.result.coverage_score)}): Reasoning may be incomplete or missing important steps`
     })
   }
 
@@ -159,7 +169,8 @@ const hasAllMetrics = computed(() => {
     && props.result.entailment !== null && props.result.entailment !== undefined
     && props.result.surprisal !== null && props.result.surprisal !== undefined
     && props.result.reproducibility !== null && props.result.reproducibility !== undefined
-    && props.result.legibility_coverage !== null && props.result.legibility_coverage !== undefined
+    && props.result.legibility_score !== null && props.result.legibility_score !== undefined
+    && props.result.coverage_score !== null && props.result.coverage_score !== undefined
     && props.result.adversarial !== null && props.result.adversarial !== undefined
     && props.result.consistency !== null && props.result.consistency !== undefined
 })
@@ -263,15 +274,28 @@ const hasAllMetrics = computed(() => {
               />
             </div>
 
-            <!-- Legibility Coverage -->
+            <!-- Legibility Score -->
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Legibility</span>
-                <span class="text-sm font-semibold">{{ formatScore(props.result.legibility_coverage) }}</span>
+                <span class="text-sm font-semibold">{{ formatScore(props.result.legibility_score) }}</span>
               </div>
               <UProgress
-                :value="(props.result.legibility_coverage || 0) * 100"
-                :color="getScoreColor(props.result.legibility_coverage)"
+                :value="(props.result.legibility_score || 0) * 100"
+                :color="getScoreColor(props.result.legibility_score)"
+                size="xs"
+              />
+            </div>
+
+            <!-- Coverage Score -->
+            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-muted">Coverage</span>
+                <span class="text-sm font-semibold">{{ formatScore(props.result.coverage_score) }}</span>
+              </div>
+              <UProgress
+                :value="(props.result.coverage_score || 0) * 100"
+                :color="getScoreColor(props.result.coverage_score)"
                 size="xs"
               />
             </div>
