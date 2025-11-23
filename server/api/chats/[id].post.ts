@@ -199,7 +199,8 @@ export default defineEventHandler(async (event) => {
                 reproducibility: `${baseUrl}/api/monitor/reproducibility`,
                 legibility_coverage: `${baseUrl}/api/monitor/legibility_coverage`,
                 adversarial: `${baseUrl}/api/monitor/adversarial`,
-                consistency: `${baseUrl}/api/monitor/consistency`
+                consistency: `${baseUrl}/api/monitor/consistency`,
+                factcheck: `${baseUrl}/api/monitor/factcheck`
               }
             }
           }).catch((error) => {
