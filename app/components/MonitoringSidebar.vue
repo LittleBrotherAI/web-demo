@@ -11,7 +11,7 @@ interface MonitoringResult {
   consistency?: number | null
 }
 
-const { result } = defineProps<{
+const props = defineProps<{
   result: MonitoringResult | null
 }>()
 
@@ -57,7 +57,7 @@ const open = ref(true)
         </div>
 
         <!-- Monitoring Results -->
-        <MonitoringResults :result="result" />
+        <MonitoringResults :result="props.result" />
 
         <!-- Info Card -->
         <UCard

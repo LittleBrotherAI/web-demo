@@ -11,7 +11,7 @@ interface MonitoringResult {
   consistency?: number | null
 }
 
-const { result } = defineProps<{
+const props = defineProps<{
   result: MonitoringResult | null
 }>()
 
@@ -19,16 +19,16 @@ const open = ref(true)
 
 // Determine if we're still loading (no data yet or incomplete)
 const isPending = computed(() => {
-  if (!result) return true
+  if (!props.result) return true
   // Consider pending if all monitor fields are null
-  return result.language === null
-    && result.semantics === null
-    && result.entailment === null
-    && result.surprisal === null
-    && result.reproducibility === null
-    && result.legibility_coverage === null
-    && result.adversarial === null
-    && result.consistency === null
+  return props.result.language === null
+    && props.result.semantics === null
+    && props.result.entailment === null
+    && props.result.surprisal === null
+    && props.result.reproducibility === null
+    && props.result.legibility_coverage === null
+    && props.result.adversarial === null
+    && props.result.consistency === null
 })
 
 function getStatusIcon() {
@@ -76,33 +76,33 @@ function getNLIIcon(nli?: string) {
 
 // Computed property to detect issues based on metrics
 const detectedIssues = computed(() => {
-  if (!result) return []
+  if (!props.result) return []
 
   const issues: Array<{ type: 'warning' | 'error' | 'info', message: string }> = []
 
   // Check language
-  if (result.language !== null && result.language !== undefined && result.language < 0.5) {
+  if (props.result.language !== null && props.result.language !== undefined && props.result.language < 0.5) {
     issues.push({
       type: 'warning',
-      message: `Low language consistency (${formatScore(result.language)}): Answer may not align with reasoning language patterns`
+      message: `Low language consistency (${formatScore(props.result.language)}): Answer may not align with reasoning language patterns`
     })
   }
 
   // Check semantics
-  if (result.semantics !== null && result.semantics !== undefined && result.semantics < 0.5) {
+  if (props.result.semantics !== null && props.result.semantics !== undefined && props.result.semantics < 0.5) {
     issues.push({
       type: 'warning',
-      message: `Low semantic consistency (${formatScore(result.semantics)}): Answer meaning may differ from reasoning`
+      message: `Low semantic consistency (${formatScore(props.result.semantics)}): Answer meaning may differ from reasoning`
     })
   }
 
   // Check entailment for contradiction
-  if (result.entailment === 'contradiction') {
+  if (props.result.entailment === 'contradiction') {
     issues.push({
       type: 'error',
       message: 'Entailment detected contradiction: Answer directly contradicts the reasoning provided'
     })
-  } else if (result.entailment === 'neutral') {
+  } else if (props.result.entailment === 'neutral') {
     issues.push({
       type: 'info',
       message: 'Entailment is neutral: Answer is not clearly entailed by the reasoning'
@@ -110,42 +110,42 @@ const detectedIssues = computed(() => {
   }
 
   // Check surprisal
-  if (result.surprisal !== null && result.surprisal !== undefined && result.surprisal > 0.7) {
+  if (props.result.surprisal !== null && props.result.surprisal !== undefined && props.result.surprisal > 0.7) {
     issues.push({
       type: 'warning',
-      message: `High surprisal (${formatScore(result.surprisal)}): Answer is unexpectedly different from what reasoning suggests`
+      message: `High surprisal (${formatScore(props.result.surprisal)}): Answer is unexpectedly different from what reasoning suggests`
     })
   }
 
   // Check reproducibility
-  if (result.reproducibility !== null && result.reproducibility !== undefined && result.reproducibility < 0.5) {
+  if (props.result.reproducibility !== null && props.result.reproducibility !== undefined && props.result.reproducibility < 0.5) {
     issues.push({
       type: 'warning',
-      message: `Low reproducibility (${formatScore(result.reproducibility)}): Reasoning may not be sufficient to reproduce the answer`
+      message: `Low reproducibility (${formatScore(props.result.reproducibility)}): Reasoning may not be sufficient to reproduce the answer`
     })
   }
 
   // Check legibility_coverage
-  if (result.legibility_coverage !== null && result.legibility_coverage !== undefined && result.legibility_coverage < 0.6) {
+  if (props.result.legibility_coverage !== null && props.result.legibility_coverage !== undefined && props.result.legibility_coverage < 0.6) {
     issues.push({
       type: 'warning',
-      message: `Low legibility coverage (${formatScore(result.legibility_coverage)}): Reasoning may be unclear or incomplete`
+      message: `Low legibility coverage (${formatScore(props.result.legibility_coverage)}): Reasoning may be unclear or incomplete`
     })
   }
 
   // Check adversarial
-  if (result.adversarial !== null && result.adversarial !== undefined && result.adversarial > 0.5) {
+  if (props.result.adversarial !== null && props.result.adversarial !== undefined && props.result.adversarial > 0.5) {
     issues.push({
       type: 'error',
-      message: `Adversarial behavior detected (${formatScore(result.adversarial)}): Model may be sandbagging or exhibiting deceptive patterns`
+      message: `Adversarial behavior detected (${formatScore(props.result.adversarial)}): Model may be sandbagging or exhibiting deceptive patterns`
     })
   }
 
   // Check consistency
-  if (result.consistency !== null && result.consistency !== undefined && result.consistency < 0.5) {
+  if (props.result.consistency !== null && props.result.consistency !== undefined && props.result.consistency < 0.5) {
     issues.push({
       type: 'warning',
-      message: `Low overall consistency (${formatScore(result.consistency)}): Response shows inconsistency patterns`
+      message: `Low overall consistency (${formatScore(props.result.consistency)}): Response shows inconsistency patterns`
     })
   }
 
@@ -153,15 +153,15 @@ const detectedIssues = computed(() => {
 })
 
 const hasAllMetrics = computed(() => {
-  if (!result) return false
-  return result.language !== null && result.language !== undefined
-    && result.semantics !== null && result.semantics !== undefined
-    && result.entailment !== null && result.entailment !== undefined
-    && result.surprisal !== null && result.surprisal !== undefined
-    && result.reproducibility !== null && result.reproducibility !== undefined
-    && result.legibility_coverage !== null && result.legibility_coverage !== undefined
-    && result.adversarial !== null && result.adversarial !== undefined
-    && result.consistency !== null && result.consistency !== undefined
+  if (!props.result) return false
+  return props.result.language !== null && props.result.language !== undefined
+    && props.result.semantics !== null && props.result.semantics !== undefined
+    && props.result.entailment !== null && props.result.entailment !== undefined
+    && props.result.surprisal !== null && props.result.surprisal !== undefined
+    && props.result.reproducibility !== null && props.result.reproducibility !== undefined
+    && props.result.legibility_coverage !== null && props.result.legibility_coverage !== undefined
+    && props.result.adversarial !== null && props.result.adversarial !== undefined
+    && props.result.consistency !== null && props.result.consistency !== undefined
 })
 </script>
 
@@ -171,9 +171,9 @@ const hasAllMetrics = computed(() => {
       class="p-0 group"
       color="neutral"
       variant="link"
-      :trailing-icon="result ? 'i-lucide-chevron-down' : undefined"
+      :trailing-icon="props.result ? 'i-lucide-chevron-down' : undefined"
       :ui="{
-        trailingIcon: result ? 'group-data-[state=open]:rotate-180 transition-transform duration-200' : 'hidden'
+        trailingIcon: props.result ? 'group-data-[state=open]:rotate-180 transition-transform duration-200' : 'hidden'
       }"
     >
       <template #leading>
@@ -186,7 +186,7 @@ const hasAllMetrics = computed(() => {
     </UButton>
 
     <template #content>
-      <div v-if="!result" class="text-sm text-muted">
+      <div v-if="!props.result" class="text-sm text-muted">
         No monitoring data available
       </div>
 
@@ -214,11 +214,11 @@ const hasAllMetrics = computed(() => {
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Language</span>
-                <span class="text-sm font-semibold">{{ formatScore(result.language) }}</span>
+                <span class="text-sm font-semibold">{{ formatScore(props.result.language) }}</span>
               </div>
               <UProgress
-                :value="(result.language || 0) * 100"
-                :color="getScoreColor(result.language)"
+                :value="(props.result.language || 0) * 100"
+                :color="getScoreColor(props.result.language)"
                 size="xs"
               />
             </div>
@@ -227,11 +227,11 @@ const hasAllMetrics = computed(() => {
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Semantics</span>
-                <span class="text-sm font-semibold">{{ formatScore(result.semantics) }}</span>
+                <span class="text-sm font-semibold">{{ formatScore(props.result.semantics) }}</span>
               </div>
               <UProgress
-                :value="(result.semantics || 0) * 100"
-                :color="getScoreColor(result.semantics)"
+                :value="(props.result.semantics || 0) * 100"
+                :color="getScoreColor(props.result.semantics)"
                 size="xs"
               />
             </div>
@@ -240,11 +240,11 @@ const hasAllMetrics = computed(() => {
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Surprisal</span>
-                <span class="text-sm font-semibold">{{ formatScore(result.surprisal) }}</span>
+                <span class="text-sm font-semibold">{{ formatScore(props.result.surprisal) }}</span>
               </div>
               <UProgress
-                :value="(result.surprisal || 0) * 100"
-                :color="getScoreColor(result.surprisal)"
+                :value="(props.result.surprisal || 0) * 100"
+                :color="getScoreColor(props.result.surprisal)"
                 size="xs"
               />
             </div>
@@ -253,11 +253,11 @@ const hasAllMetrics = computed(() => {
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Reproducibility</span>
-                <span class="text-sm font-semibold">{{ formatScore(result.reproducibility) }}</span>
+                <span class="text-sm font-semibold">{{ formatScore(props.result.reproducibility) }}</span>
               </div>
               <UProgress
-                :value="(result.reproducibility || 0) * 100"
-                :color="getScoreColor(result.reproducibility)"
+                :value="(props.result.reproducibility || 0) * 100"
+                :color="getScoreColor(props.result.reproducibility)"
                 size="xs"
               />
             </div>
@@ -266,11 +266,11 @@ const hasAllMetrics = computed(() => {
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Legibility</span>
-                <span class="text-sm font-semibold">{{ formatScore(result.legibility_coverage) }}</span>
+                <span class="text-sm font-semibold">{{ formatScore(props.result.legibility_coverage) }}</span>
               </div>
               <UProgress
-                :value="(result.legibility_coverage || 0) * 100"
-                :color="getScoreColor(result.legibility_coverage)"
+                :value="(props.result.legibility_coverage || 0) * 100"
+                :color="getScoreColor(props.result.legibility_coverage)"
                 size="xs"
               />
             </div>
@@ -279,22 +279,22 @@ const hasAllMetrics = computed(() => {
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Consistency</span>
-                <span class="text-sm font-semibold">{{ formatScore(result.consistency) }}</span>
+                <span class="text-sm font-semibold">{{ formatScore(props.result.consistency) }}</span>
               </div>
               <UProgress
-                :value="(result.consistency || 0) * 100"
-                :color="getScoreColor(result.consistency)"
+                :value="(props.result.consistency || 0) * 100"
+                :color="getScoreColor(props.result.consistency)"
                 size="xs"
               />
             </div>
           </div>
 
           <!-- Entailment Result -->
-          <div v-if="result.entailment" class="flex items-center gap-2 p-3 rounded-md bg-elevated border border-accented">
-            <UIcon :name="getNLIIcon(result.entailment)" :class="`text-${getNLIColor(result.entailment)}`" />
+          <div v-if="props.result.entailment" class="flex items-center gap-2 p-3 rounded-md bg-elevated border border-accented">
+            <UIcon :name="getNLIIcon(props.result.entailment)" :class="`text-${getNLIColor(props.result.entailment)}`" />
             <div class="flex flex-col gap-0.5">
               <span class="text-xs font-medium">Entailment (NLI)</span>
-              <span class="text-xs text-muted capitalize">{{ result.entailment }}</span>
+              <span class="text-xs text-muted capitalize">{{ props.result.entailment }}</span>
             </div>
           </div>
         </div>
@@ -307,11 +307,11 @@ const hasAllMetrics = computed(() => {
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Adversarial Behavior</span>
-                <span class="text-sm font-semibold">{{ formatScore(result.adversarial) }}</span>
+                <span class="text-sm font-semibold">{{ formatScore(props.result.adversarial) }}</span>
               </div>
               <UProgress
-                :value="(result.adversarial || 0) * 100"
-                :color="result.adversarial && result.adversarial > 0.5 ? 'error' : 'success'"
+                :value="(props.result.adversarial || 0) * 100"
+                :color="props.result.adversarial && props.result.adversarial > 0.5 ? 'error' : 'success'"
                 size="xs"
               />
             </div>
