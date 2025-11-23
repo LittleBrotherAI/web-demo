@@ -174,14 +174,8 @@ export default defineEventHandler(async (event) => {
           .map(part => part.text)
           .join('\n')
 
-        // 3. Create monitoring record with completed=false
-        await db.insert(tables.monitoringResults).values({
-          messageId: assistantDbMessage.id,
-          chatId: chat.id,
-          completed: false
-        })
-
-        // 4. Send POST request to monitoring service (fire-and-forget)
+        // Send POST request to monitoring service (fire-and-forget)
+        // No pre-creation of monitor records - webhooks will create them on-demand
         if (monitoringServiceUrl) {
           const requestUrl = getRequestURL(event)
           const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`
@@ -196,11 +190,14 @@ export default defineEventHandler(async (event) => {
               answer: modelAnswer,
               message_id: assistantDbMessage.id,
               callback_urls: {
-                consistency_language: `${baseUrl}/api/monitor/consistency_language`,
-                consistency_semantics: `${baseUrl}/api/monitor/consistency_semantics`,
-                consistency_nli: `${baseUrl}/api/monitor/consistency_nli`,
-                similarity: `${baseUrl}/api/monitor/similarity`,
-                understandability: `${baseUrl}/api/monitor/understandability`
+                language: `${baseUrl}/api/monitor/language`,
+                semantics: `${baseUrl}/api/monitor/semantics`,
+                entailment: `${baseUrl}/api/monitor/entailment`,
+                surprisal: `${baseUrl}/api/monitor/surprisal`,
+                reproducibility: `${baseUrl}/api/monitor/reproducibility`,
+                legibility_coverage: `${baseUrl}/api/monitor/legibility_coverage`,
+                adversarial: `${baseUrl}/api/monitor/adversarial`,
+                consistency: `${baseUrl}/api/monitor/consistency`
               }
             }
           }).catch((error) => {

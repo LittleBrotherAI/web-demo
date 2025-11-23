@@ -17,30 +17,57 @@ export default defineEventHandler(async (event) => {
 
   const db = useDrizzle()
 
-  // Find the monitoring result by message ID
-  const monitoringResult = await db.query.monitoringResults.findFirst({
-    where: (monitoringResults, { eq }) => eq(monitoringResults.messageId, id)
-  })
+  // Query all 8 monitor tables in parallel
+  const [
+    language,
+    semantics,
+    entailment,
+    surprisal,
+    reproducibility,
+    legibilityCoverage,
+    adversarial,
+    consistency
+  ] = await Promise.all([
+    db.query.monitorLanguage.findFirst({
+      where: (monitorLanguage, { eq }) => eq(monitorLanguage.messageId, id)
+    }),
+    db.query.monitorSemantics.findFirst({
+      where: (monitorSemantics, { eq }) => eq(monitorSemantics.messageId, id)
+    }),
+    db.query.monitorEntailment.findFirst({
+      where: (monitorEntailment, { eq }) => eq(monitorEntailment.messageId, id)
+    }),
+    db.query.monitorSurprisal.findFirst({
+      where: (monitorSurprisal, { eq }) => eq(monitorSurprisal.messageId, id)
+    }),
+    db.query.monitorReproducibility.findFirst({
+      where: (monitorReproducibility, { eq }) => eq(monitorReproducibility.messageId, id)
+    }),
+    db.query.monitorLegibilityCoverage.findFirst({
+      where: (monitorLegibilityCoverage, { eq }) => eq(monitorLegibilityCoverage.messageId, id)
+    }),
+    db.query.monitorAdversarial.findFirst({
+      where: (monitorAdversarial, { eq }) => eq(monitorAdversarial.messageId, id)
+    }),
+    db.query.monitorConsistency.findFirst({
+      where: (monitorConsistency, { eq }) => eq(monitorConsistency.messageId, id)
+    })
+  ])
 
-  if (!monitoringResult) {
-    return {
-      consistency_language: null,
-      consistency_semantics: null,
-      consistency_nli: null,
-      similarity: null,
-      understandability: null,
-      completed: false
-    }
-  }
-
-  // Return monitoring results directly from database
+  // Return aggregated monitoring results
   return {
-    consistency_language: monitoringResult.consistency_language,
-    consistency_semantics: monitoringResult.consistency_semantics,
-    consistency_nli: monitoringResult.consistency_nli,
-    similarity: monitoringResult.similarity,
-    understandability: monitoringResult.understandability,
-    completed: monitoringResult.completed,
-    createdAt: monitoringResult.createdAt?.toISOString()
+    language: language?.score ?? null,
+    semantics: semantics?.score ?? null,
+    entailment: entailment
+      ? {
+          score: entailment.score,
+          label: entailment.label
+        }
+      : null,
+    surprisal: surprisal?.score ?? null,
+    reproducibility: reproducibility?.score ?? null,
+    legibility_coverage: legibilityCoverage?.score ?? null,
+    adversarial: adversarial?.score ?? null,
+    consistency: consistency?.score ?? null
   }
 })
