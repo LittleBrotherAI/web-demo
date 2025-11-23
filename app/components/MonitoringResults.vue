@@ -230,7 +230,6 @@ const hasAllMetrics = computed(() => {
             <MonitoringMetricCard
               label="Clarity"
               :score="props.result.surprisal"
-              inverted
             />
 
             <MonitoringMetricCard
