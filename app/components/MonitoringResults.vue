@@ -281,7 +281,7 @@ const hasAllMetrics = computed(() => {
                 <span class="text-sm font-semibold">{{ formatScore(props.result.legibility_score) }}</span>
               </div>
               <UProgress
-                :value="(props.result.legibility_score || 0) * 100"
+                :value="(props.result.legibility_score || 0) * 25"
                 :color="getScoreColor(props.result.legibility_score)"
                 size="xs"
               />
@@ -294,7 +294,7 @@ const hasAllMetrics = computed(() => {
                 <span class="text-sm font-semibold">{{ formatScore(props.result.coverage_score) }}</span>
               </div>
               <UProgress
-                :value="(props.result.coverage_score || 0) * 100"
+                :value="(props.result.coverage_score || 0) * 25"
                 :color="getScoreColor(props.result.coverage_score)"
                 size="xs"
               />
