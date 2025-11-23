@@ -1,13 +1,13 @@
 <script setup lang="ts">
 interface MonitoringResult {
-  status: 'pending' | 'completed' | 'failed'
-  consistency_language?: number
-  consistency_semantics?: number
-  consistency_nli?: string
-  similarity?: number
-  understandability?: number
-  error?: string
-  completedAt?: string
+  messageId?: string
+  consistency_language?: number | null
+  consistency_semantics?: number | null
+  consistency_nli?: string | null
+  similarity?: number | null
+  understandability?: number | null
+  completed?: boolean
+  createdAt?: string
 }
 
 const { result } = defineProps<{
@@ -16,26 +16,29 @@ const { result } = defineProps<{
 
 const open = ref(true)
 
-function getStatusIcon(status: string) {
-  switch (status) {
-    case 'pending':
-      return 'i-lucide-loader-circle'
-    case 'completed':
-      return 'i-lucide-shield-check'
-    case 'failed':
-      return 'i-lucide-alert-triangle'
-    default:
-      return 'i-lucide-shield'
-  }
+// Determine if we're still loading (no data yet or incomplete)
+const isPending = computed(() => {
+  if (!result) return true
+  // Consider pending if all fields are null
+  return result.consistency_language === null
+    && result.consistency_semantics === null
+    && result.consistency_nli === null
+    && result.similarity === null
+    && result.understandability === null
+})
+
+function getStatusIcon() {
+  if (isPending.value) return 'i-lucide-loader-circle'
+  return 'i-lucide-shield-check'
 }
 
-function formatScore(value?: number) {
-  if (value === undefined) return 'N/A'
+function formatScore(value?: number | null) {
+  if (value === undefined || value === null) return 'N/A'
   return `${Math.round(value * 100)}%`
 }
 
-function getScoreColor(value?: number) {
-  if (value === undefined) return 'neutral'
+function getScoreColor(value?: number | null) {
+  if (value === undefined || value === null) return 'neutral'
   if (value >= 0.7) return 'success'
   if (value >= 0.4) return 'warning'
   return 'error'
@@ -69,12 +72,12 @@ function getNLIIcon(nli?: string) {
 
 // Computed property to detect issues based on metrics
 const detectedIssues = computed(() => {
-  if (!result || result.status !== 'completed') return []
+  if (!result) return []
 
   const issues: Array<{ type: 'warning' | 'error' | 'info', message: string }> = []
 
   // Check consistency_language
-  if (result.consistency_language !== undefined && result.consistency_language < 0.5) {
+  if (result.consistency_language !== null && result.consistency_language !== undefined && result.consistency_language < 0.5) {
     issues.push({
       type: 'warning',
       message: `Low language consistency (${formatScore(result.consistency_language)}): Answer may not align with reasoning language patterns`
@@ -82,7 +85,7 @@ const detectedIssues = computed(() => {
   }
 
   // Check consistency_semantics
-  if (result.consistency_semantics !== undefined && result.consistency_semantics < 0.5) {
+  if (result.consistency_semantics !== null && result.consistency_semantics !== undefined && result.consistency_semantics < 0.5) {
     issues.push({
       type: 'warning',
       message: `Low semantic consistency (${formatScore(result.consistency_semantics)}): Answer meaning may differ from reasoning`
@@ -103,7 +106,7 @@ const detectedIssues = computed(() => {
   }
 
   // Check similarity
-  if (result.similarity !== undefined && result.similarity < 0.4) {
+  if (result.similarity !== null && result.similarity !== undefined && result.similarity < 0.4) {
     issues.push({
       type: 'warning',
       message: `Low similarity (${formatScore(result.similarity)}): Answer content significantly differs from reasoning`
@@ -111,7 +114,7 @@ const detectedIssues = computed(() => {
   }
 
   // Check understandability
-  if (result.understandability !== undefined && result.understandability < 0.6) {
+  if (result.understandability !== null && result.understandability !== undefined && result.understandability < 0.6) {
     issues.push({
       type: 'warning',
       message: `Low understandability (${formatScore(result.understandability)}): Reasoning may be unclear or poorly structured`
@@ -122,12 +125,12 @@ const detectedIssues = computed(() => {
 })
 
 const hasAllMetrics = computed(() => {
-  if (!result || result.status !== 'completed') return false
-  return result.consistency_language !== undefined
-    && result.consistency_semantics !== undefined
-    && result.consistency_nli !== undefined
-    && result.similarity !== undefined
-    && result.understandability !== undefined
+  if (!result) return false
+  return result.consistency_language !== null && result.consistency_language !== undefined
+    && result.consistency_semantics !== null && result.consistency_semantics !== undefined
+    && result.consistency_nli !== null && result.consistency_nli !== undefined
+    && result.similarity !== null && result.similarity !== undefined
+    && result.understandability !== null && result.understandability !== undefined
 })
 </script>
 
@@ -144,11 +147,11 @@ const hasAllMetrics = computed(() => {
     >
       <template #leading>
         <UIcon
-          :name="getStatusIcon(result?.status || 'pending')"
-          :class="result?.status === 'pending' ? 'animate-spin' : ''"
+          :name="getStatusIcon()"
+          :class="isPending ? 'animate-spin' : ''"
         />
       </template>
-      <span>{{ result?.status === 'pending' ? 'Monitoring...' : 'Monitor Results' }}</span>
+      <span>{{ isPending ? 'Monitoring...' : 'Monitor Results' }}</span>
     </UButton>
 
     <template #content>
@@ -157,26 +160,15 @@ const hasAllMetrics = computed(() => {
       </div>
 
       <!-- Pending State -->
-      <div v-else-if="result.status === 'pending'" class="flex flex-col gap-2">
+      <div v-else-if="isPending" class="flex flex-col gap-2">
         <div class="flex items-center gap-2 text-sm text-muted">
           <UIcon name="i-lucide-loader-circle" class="animate-spin" />
           <span>Analyzing response with Chain-of-Thought monitoring...</span>
         </div>
       </div>
 
-      <!-- Failed State -->
-      <div v-else-if="result.status === 'failed'" class="flex flex-col gap-2">
-        <UAlert
-          icon="i-lucide-alert-triangle"
-          color="error"
-          variant="soft"
-          :title="result.error || 'Monitoring failed'"
-          description="Unable to complete monitoring analysis"
-        />
-      </div>
-
-      <!-- Completed State -->
-      <div v-else-if="result.status === 'completed'" class="flex flex-col gap-3">
+      <!-- Results State (with progressive loading) -->
+      <div v-else class="flex flex-col gap-3">
         <!-- Progressive Loading Indicator -->
         <div v-if="!hasAllMetrics" class="flex items-center gap-2 text-xs text-muted">
           <UIcon name="i-lucide-loader-circle" class="animate-spin h-3 w-3" />
@@ -279,8 +271,8 @@ const hasAllMetrics = computed(() => {
         </div>
 
         <!-- Timestamp -->
-        <div v-if="result.completedAt" class="text-xs text-muted">
-          Completed {{ new Date(result.completedAt).toLocaleTimeString() }}
+        <div v-if="result.createdAt" class="text-xs text-muted">
+          Completed {{ new Date(result.createdAt).toLocaleTimeString() }}
         </div>
       </div>
     </template>

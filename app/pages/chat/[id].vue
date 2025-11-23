@@ -73,32 +73,147 @@ function copy(e: MouseEvent, message: UIMessage) {
   }, 2000)
 }
 
-// Mock monitoring data for the latest assistant message
-const latestMonitoringResult = computed(() => {
+// Monitoring data for the latest assistant message
+const latestMonitoringResult = ref<{
+  messageId?: string
+  consistency_language?: number | null
+  consistency_semantics?: number | null
+  consistency_nli?: string | null
+  similarity?: number | null
+  understandability?: number | null
+  completed?: boolean
+  createdAt?: string
+} | null>(null)
+
+const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null)
+const pollingStartTime = ref<number | null>(null)
+const POLLING_TIMEOUT = 60000 // 60 seconds
+
+// Get the latest assistant message ID
+const latestAssistantMessageId = computed(() => {
   const assistantMessages = chat.messages.filter(m => m.role === 'assistant')
   if (assistantMessages.length === 0) return null
-
   const latestMessage = assistantMessages[assistantMessages.length - 1]
-  if (!latestMessage) return null
+  return latestMessage?.id || null
+})
 
-  // Mock data - this will be replaced with actual API calls later
-  if (chat.status === 'streaming') {
-    return {
-      status: 'pending' as const,
-      messageId: latestMessage.id
+// Poll for monitoring results
+async function pollMonitoringResults(messageId: string) {
+  try {
+    const result = await $fetch<{
+      consistency_language: number | null
+      consistency_semantics: number | null
+      consistency_nli: string | null
+      similarity: number | null
+      understandability: number | null
+      completed: boolean
+      createdAt?: string
+    }>(`/api/monitor/${messageId}`)
+
+    if (result) {
+      latestMonitoringResult.value = {
+        messageId,
+        consistency_language: result.consistency_language,
+        consistency_semantics: result.consistency_semantics,
+        consistency_nli: result.consistency_nli,
+        similarity: result.similarity,
+        understandability: result.understandability,
+        completed: result.completed,
+        createdAt: result.createdAt
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch monitoring results:', error)
+    // Keep existing result or set to null on error
+    if (!latestMonitoringResult.value) {
+      latestMonitoringResult.value = {
+        messageId,
+        consistency_language: null,
+        consistency_semantics: null,
+        consistency_nli: null,
+        similarity: null,
+        understandability: null,
+        completed: false
+      }
     }
   }
+}
 
-  return {
-    status: 'completed' as const,
-    messageId: latestMessage.id,
-    consistency_language: 0.87,
-    consistency_semantics: 0.92,
-    consistency_nli: 'entailment',
-    similarity: 0.78,
-    understandability: 0.85,
-    completedAt: new Date().toISOString()
+// Start polling for the latest message
+function startPolling(messageId: string) {
+  // Stop any existing polling
+  stopPolling()
+
+  // Set initial state (pending)
+  latestMonitoringResult.value = {
+    messageId,
+    consistency_language: null,
+    consistency_semantics: null,
+    consistency_nli: null,
+    similarity: null,
+    understandability: null,
+    completed: false
   }
+
+  // Set start time
+  pollingStartTime.value = Date.now()
+
+  // Poll immediately
+  pollMonitoringResults(messageId)
+
+  // Then poll every 3 seconds
+  pollingInterval.value = setInterval(() => {
+    const elapsed = Date.now() - (pollingStartTime.value || 0)
+
+    // Stop polling after 60 seconds
+    if (elapsed >= POLLING_TIMEOUT) {
+      console.log('Polling timeout reached (60s)')
+      stopPolling()
+      return
+    }
+
+    pollMonitoringResults(messageId)
+  }, 3000)
+}
+
+function stopPolling() {
+  if (pollingInterval.value) {
+    clearInterval(pollingInterval.value)
+    pollingInterval.value = null
+  }
+  pollingStartTime.value = null
+}
+
+// Watch for changes in the latest assistant message
+watch(latestAssistantMessageId, (newMessageId, oldMessageId) => {
+  if (newMessageId && newMessageId !== oldMessageId) {
+    // New message arrived, start polling
+    startPolling(newMessageId)
+  }
+})
+
+// Watch for chat status changes
+watch(() => chat.status, (status) => {
+  if (status === 'streaming') {
+    // Show pending while streaming
+    const messageId = latestAssistantMessageId.value
+    if (messageId) {
+      latestMonitoringResult.value = {
+        messageId,
+        consistency_language: null,
+        consistency_semantics: null,
+        consistency_nli: null,
+        similarity: null,
+        understandability: null,
+        completed: false
+      }
+    }
+  }
+})
+
+// Cleanup on unmount
+onUnmounted(() => {
+  stopPolling()
 })
 
 onMounted(() => {

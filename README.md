@@ -3,6 +3,19 @@
 Build trust in your LLM by direct feedback from its little brother.
 A realtime monitoring system which detects sandbagging, inconsistency and adversarial behaviour.
 
+# Monitors
+
+- language
+- semantics
+- nli
+- surprisal
+- reproducibility
+- coverage
+- legibility
+- adversarial
+- factcheck
+- consistency
+
 # Development Setup
 
 We are using Nuxt.js as framework for the website.

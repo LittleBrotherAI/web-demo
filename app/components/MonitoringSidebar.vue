@@ -1,13 +1,13 @@
 <script setup lang="ts">
 interface MonitoringResult {
-  status: 'pending' | 'completed' | 'failed'
-  consistency_language?: number
-  consistency_semantics?: number
-  consistency_nli?: string
-  similarity?: number
-  understandability?: number
-  error?: string
-  completedAt?: string
+  messageId?: string
+  consistency_language?: number | null
+  consistency_semantics?: number | null
+  consistency_nli?: string | null
+  similarity?: number | null
+  understandability?: number | null
+  completed?: boolean
+  createdAt?: string
 }
 
 const { result } = defineProps<{
