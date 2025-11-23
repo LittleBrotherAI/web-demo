@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     event,
     z.object({
       message_id: z.string().max(255),
-      surprisal_score: z.boolean()
+      surprisal_score: z.number().min(0).max(1)
     }).parse
   )
 

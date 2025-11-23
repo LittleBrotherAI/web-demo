@@ -50,6 +50,13 @@
       "when": 1763923631063,
       "tag": "0006_nifty_calypso",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1763925585517,
+      "tag": "0007_change_surprisal_to_float",
+      "breakpoints": true
     }
   ]
 }

@@ -10,7 +10,7 @@ interface MonitoringResult {
   language?: number | null
   semantics?: number | null
   entailment?: string | null
-  surprisal?: boolean | null
+  surprisal?: number | null
   reproducibility?: number | null
   legibility_score?: number | null
   coverage_score?: number | null
@@ -118,10 +118,10 @@ const detectedIssues = computed(() => {
   }
 
   // Check surprisal
-  if (props.result.surprisal === true) {
+  if (props.result.surprisal !== null && props.result.surprisal !== undefined && props.result.surprisal > 0.5) {
     issues.push({
       type: 'warning',
-      message: 'High surprisal detected: Answer is unexpectedly different from what reasoning suggests'
+      message: `High surprisal (${formatScore(props.result.surprisal)}): Answer is unexpectedly different from what reasoning suggests`
     })
   }
 
@@ -244,7 +244,6 @@ const hasAllMetrics = computed(() => {
                 :value="(props.result.language || 0) * 100"
                 :color="getScoreColor(props.result.language)"
                 size="xs"
-                :animation="false"
               />
             </div>
 
@@ -258,22 +257,20 @@ const hasAllMetrics = computed(() => {
                 :value="(props.result.semantics || 0) * 100"
                 :color="getScoreColor(props.result.semantics)"
                 size="xs"
-                :animation="false"
               />
             </div>
 
             <!-- Surprisal -->
-            <div class="flex items-center justify-between p-3 rounded-md bg-elevated border border-accented">
-              <div class="flex items-center gap-2">
-                <UIcon
-                  :name="props.result.surprisal === true ? 'i-lucide-alert-triangle' : props.result.surprisal === false ? 'i-lucide-check-circle' : 'i-lucide-circle'"
-                  :class="props.result.surprisal === true ? 'text-warning' : props.result.surprisal === false ? 'text-success' : 'text-muted'"
-                />
+            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
+              <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Surprisal</span>
+                <span class="text-sm font-semibold">{{ formatScore(props.result.surprisal) }}</span>
               </div>
-              <span class="text-sm font-semibold">
-                {{ props.result.surprisal === true ? 'High' : props.result.surprisal === false ? 'Low' : 'N/A' }}
-              </span>
+              <UProgress
+                :value="(props.result.surprisal || 0) * 100"
+                :color="props.result.surprisal && props.result.surprisal > 0.5 ? 'warning' : 'success'"
+                size="xs"
+              />
             </div>
 
             <!-- Reproducibility -->
@@ -286,7 +283,6 @@ const hasAllMetrics = computed(() => {
                 :value="(props.result.reproducibility || 0) * 100"
                 :color="getScoreColor(props.result.reproducibility)"
                 size="xs"
-                :animation="false"
               />
             </div>
 
@@ -300,7 +296,6 @@ const hasAllMetrics = computed(() => {
                 :value="(props.result.legibility_score || 0) * 25"
                 :color="getScoreColor(props.result.legibility_score)"
                 size="xs"
-                :animation="false"
               />
             </div>
 
@@ -314,7 +309,6 @@ const hasAllMetrics = computed(() => {
                 :value="(props.result.coverage_score || 0) * 25"
                 :color="getScoreColor(props.result.coverage_score)"
                 size="xs"
-                :animation="false"
               />
             </div>
 
@@ -341,7 +335,6 @@ const hasAllMetrics = computed(() => {
                   :value="(props.result.consistency.confidence || 0) * 100"
                   :color="getScoreColor(props.result.consistency.confidence)"
                   size="xs"
-                  :animation="false"
                 />
               </div>
               <div class="flex flex-col gap-1">
@@ -377,7 +370,6 @@ const hasAllMetrics = computed(() => {
                 :value="(props.result.adversarial || 0) * 100"
                 :color="props.result.adversarial && props.result.adversarial > 0.5 ? 'error' : 'success'"
                 size="xs"
-                :animation="false"
               />
             </div>
           </div>

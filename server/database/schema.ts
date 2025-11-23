@@ -166,7 +166,7 @@ export const monitorSurprisal = pgTable(
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
-    surprisal_score: boolean().notNull()
+    surprisal_score: real().notNull()
   },
   table => [index('monitor_surprisal_message_id_idx').on(table.messageId)]
 )
