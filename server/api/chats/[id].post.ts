@@ -188,7 +188,7 @@ export default defineEventHandler(async (event) => {
 
           console.log('Triggering monitoring for message:', assistantDbMessage.id)
 
-          $fetch(monitoringServiceUrl, {
+          $fetch(monitoringServiceUrl + '/api/monitor', {
             method: 'POST',
             body: {
               prompt: userPrompt,
