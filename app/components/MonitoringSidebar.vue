@@ -1,4 +1,10 @@
 <script setup lang="ts">
+interface ConsistencyResult {
+  is_consistent: boolean
+  confidence: number
+  explanation: string
+}
+
 interface MonitoringResult {
   messageId?: string
   language?: number | null
@@ -9,7 +15,7 @@ interface MonitoringResult {
   legibility_score?: number | null
   coverage_score?: number | null
   adversarial?: number | null
-  consistency?: number | null
+  consistency?: ConsistencyResult | null
 }
 
 const props = defineProps<{
@@ -151,7 +157,7 @@ const open = ref(true)
                   <div class="flex flex-col gap-0.5">
                     <span class="text-xs font-medium text-muted">Consistency</span>
                     <span class="text-xs text-muted">
-                      Overall consistency across response patterns
+                      Judges overall consistency with confidence and explanation
                     </span>
                   </div>
                 </div>

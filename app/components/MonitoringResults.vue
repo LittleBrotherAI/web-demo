@@ -1,4 +1,10 @@
 <script setup lang="ts">
+interface ConsistencyResult {
+  is_consistent: boolean
+  confidence: number
+  explanation: string
+}
+
 interface MonitoringResult {
   messageId?: string
   language?: number | null
@@ -9,7 +15,7 @@ interface MonitoringResult {
   legibility_score?: number | null
   coverage_score?: number | null
   adversarial?: number | null
-  consistency?: number | null
+  consistency?: ConsistencyResult | null
 }
 
 const props = defineProps<{
@@ -152,11 +158,18 @@ const detectedIssues = computed(() => {
   }
 
   // Check consistency
-  if (props.result.consistency !== null && props.result.consistency !== undefined && props.result.consistency < 0.5) {
-    issues.push({
-      type: 'warning',
-      message: `Low overall consistency (${formatScore(props.result.consistency)}): Response shows inconsistency patterns`
-    })
+  if (props.result.consistency !== null && props.result.consistency !== undefined) {
+    if (!props.result.consistency.is_consistent) {
+      issues.push({
+        type: 'error',
+        message: `Inconsistency detected (confidence: ${formatScore(props.result.consistency.confidence)}): ${props.result.consistency.explanation}`
+      })
+    } else if (props.result.consistency.confidence < 0.7) {
+      issues.push({
+        type: 'warning',
+        message: `Low consistency confidence (${formatScore(props.result.consistency.confidence)}): ${props.result.consistency.explanation}`
+      })
+    }
   }
 
   return issues
@@ -301,16 +314,36 @@ const hasAllMetrics = computed(() => {
             </div>
 
             <!-- Consistency -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
+            <div v-if="props.result.consistency" class="flex flex-col gap-2 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Consistency</span>
-                <span class="text-sm font-semibold">{{ formatScore(props.result.consistency) }}</span>
+                <div class="flex items-center gap-2">
+                  <UIcon
+                    :name="props.result.consistency.is_consistent ? 'i-lucide-check-circle' : 'i-lucide-x-circle'"
+                    :class="props.result.consistency.is_consistent ? 'text-success' : 'text-error'"
+                  />
+                  <span class="text-sm font-semibold">
+                    {{ props.result.consistency.is_consistent ? 'Consistent' : 'Inconsistent' }}
+                  </span>
+                </div>
               </div>
-              <UProgress
-                :value="(props.result.consistency || 0) * 100"
-                :color="getScoreColor(props.result.consistency)"
-                size="xs"
-              />
+              <div class="flex flex-col gap-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-muted">Confidence</span>
+                  <span class="text-xs font-medium">{{ formatScore(props.result.consistency.confidence) }}</span>
+                </div>
+                <UProgress
+                  :value="(props.result.consistency.confidence || 0) * 100"
+                  :color="getScoreColor(props.result.consistency.confidence)"
+                  size="xs"
+                />
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-xs text-muted">Explanation</span>
+                <p class="text-xs leading-relaxed">
+                  {{ props.result.consistency.explanation }}
+                </p>
+              </div>
             </div>
           </div>
 

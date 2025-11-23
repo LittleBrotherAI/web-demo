@@ -64,6 +64,12 @@ export default defineEventHandler(async (event) => {
     legibility_score: legibilityCoverage?.legibility_score ?? null,
     coverage_score: legibilityCoverage?.coverage_score ?? null,
     adversarial: adversarial?.score ?? null,
-    consistency: consistency?.score ?? null
+    consistency: consistency
+      ? {
+          is_consistent: consistency.isConsistent,
+          confidence: consistency.confidence,
+          explanation: consistency.explanation
+        }
+      : null
   }
 })

@@ -255,7 +255,9 @@ export const monitorConsistency = pgTable(
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
-    score: real().notNull()
+    isConsistent: boolean().notNull(),
+    confidence: real().notNull(),
+    explanation: varchar({ length: 1000 }).notNull()
   },
   table => [index('monitor_consistency_message_id_idx').on(table.messageId)]
 )

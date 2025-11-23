@@ -43,6 +43,13 @@
       "when": 1763919837929,
       "tag": "0005_dark_ricochet",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1763923631063,
+      "tag": "0006_nifty_calypso",
+      "breakpoints": true
     }
   ]
 }

@@ -74,6 +74,12 @@ function copy(e: MouseEvent, message: UIMessage) {
 }
 
 // Monitoring data for the latest assistant message
+interface ConsistencyResult {
+  is_consistent: boolean
+  confidence: number
+  explanation: string
+}
+
 const latestMonitoringResult = ref<{
   messageId?: string
   language?: number | null
@@ -84,7 +90,7 @@ const latestMonitoringResult = ref<{
   legibility_score?: number | null
   coverage_score?: number | null
   adversarial?: number | null
-  consistency?: number | null
+  consistency?: ConsistencyResult | null
 } | null>(null)
 
 const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null)
@@ -111,7 +117,7 @@ async function pollMonitoringResults(messageId: string) {
       legibility_score: number | null
       coverage_score: number | null
       adversarial: number | null
-      consistency: number | null
+      consistency: ConsistencyResult | null
     }>(`/api/monitor/${messageId}`)
 
     if (result) {

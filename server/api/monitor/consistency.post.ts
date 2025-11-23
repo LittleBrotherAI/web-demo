@@ -10,11 +10,13 @@ defineRouteMeta({
 
 export default defineEventHandler(async (event) => {
   // Validate incoming JSON body
-  const { message_id, score } = await readValidatedBody(
+  const { message_id, is_consistent, confidence, explanation } = await readValidatedBody(
     event,
     z.object({
       message_id: z.string().max(255),
-      score: z.number()
+      is_consistent: z.boolean(),
+      confidence: z.number().min(0).max(1),
+      explanation: z.string().max(1000)
     }).parse
   )
 
@@ -41,13 +43,19 @@ export default defineEventHandler(async (event) => {
     // Update existing record
     await db
       .update(tables.monitorConsistency)
-      .set({ score })
+      .set({
+        isConsistent: is_consistent,
+        confidence,
+        explanation
+      })
       .where(eq(tables.monitorConsistency.messageId, message_id))
   } else {
     // Insert new record
     await db.insert(tables.monitorConsistency).values({
       messageId: message_id,
-      score
+      isConsistent: is_consistent,
+      confidence,
+      explanation
     })
   }
 
@@ -55,6 +63,8 @@ export default defineEventHandler(async (event) => {
     success: true,
     message: 'Consistency monitoring result saved successfully',
     message_id,
-    score
+    is_consistent,
+    confidence,
+    explanation
   }
 })
