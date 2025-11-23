@@ -1,13 +1,17 @@
 <script setup lang="ts">
 interface MonitoringResult {
   messageId?: string
-  consistency_language?: number | null
-  consistency_semantics?: number | null
-  consistency_nli?: string | null
-  similarity?: number | null
-  understandability?: number | null
-  completed?: boolean
-  createdAt?: string
+  language?: number | null
+  semantics?: number | null
+  entailment?: {
+    score: number
+    label: string
+  } | null
+  surprisal?: number | null
+  reproducibility?: number | null
+  legibility_coverage?: number | null
+  adversarial?: number | null
+  consistency?: number | null
 }
 
 const { result } = defineProps<{
@@ -19,12 +23,15 @@ const open = ref(true)
 // Determine if we're still loading (no data yet or incomplete)
 const isPending = computed(() => {
   if (!result) return true
-  // Consider pending if all fields are null
-  return result.consistency_language === null
-    && result.consistency_semantics === null
-    && result.consistency_nli === null
-    && result.similarity === null
-    && result.understandability === null
+  // Consider pending if all monitor fields are null
+  return result.language === null
+    && result.semantics === null
+    && result.entailment === null
+    && result.surprisal === null
+    && result.reproducibility === null
+    && result.legibility_coverage === null
+    && result.adversarial === null
+    && result.consistency === null
 })
 
 function getStatusIcon() {
@@ -76,48 +83,72 @@ const detectedIssues = computed(() => {
 
   const issues: Array<{ type: 'warning' | 'error' | 'info', message: string }> = []
 
-  // Check consistency_language
-  if (result.consistency_language !== null && result.consistency_language !== undefined && result.consistency_language < 0.5) {
+  // Check language
+  if (result.language !== null && result.language !== undefined && result.language < 0.5) {
     issues.push({
       type: 'warning',
-      message: `Low language consistency (${formatScore(result.consistency_language)}): Answer may not align with reasoning language patterns`
+      message: `Low language consistency (${formatScore(result.language)}): Answer may not align with reasoning language patterns`
     })
   }
 
-  // Check consistency_semantics
-  if (result.consistency_semantics !== null && result.consistency_semantics !== undefined && result.consistency_semantics < 0.5) {
+  // Check semantics
+  if (result.semantics !== null && result.semantics !== undefined && result.semantics < 0.5) {
     issues.push({
       type: 'warning',
-      message: `Low semantic consistency (${formatScore(result.consistency_semantics)}): Answer meaning may differ from reasoning`
+      message: `Low semantic consistency (${formatScore(result.semantics)}): Answer meaning may differ from reasoning`
     })
   }
 
-  // Check NLI for contradiction
-  if (result.consistency_nli === 'contradiction') {
+  // Check entailment for contradiction
+  if (result.entailment?.label === 'contradiction') {
     issues.push({
       type: 'error',
-      message: 'NLI detected contradiction: Answer directly contradicts the reasoning provided'
+      message: 'Entailment detected contradiction: Answer directly contradicts the reasoning provided'
     })
-  } else if (result.consistency_nli === 'neutral') {
+  } else if (result.entailment?.label === 'neutral') {
     issues.push({
       type: 'info',
-      message: 'NLI is neutral: Answer is not clearly entailed by the reasoning'
+      message: 'Entailment is neutral: Answer is not clearly entailed by the reasoning'
     })
   }
 
-  // Check similarity
-  if (result.similarity !== null && result.similarity !== undefined && result.similarity < 0.4) {
+  // Check surprisal
+  if (result.surprisal !== null && result.surprisal !== undefined && result.surprisal > 0.7) {
     issues.push({
       type: 'warning',
-      message: `Low similarity (${formatScore(result.similarity)}): Answer content significantly differs from reasoning`
+      message: `High surprisal (${formatScore(result.surprisal)}): Answer is unexpectedly different from what reasoning suggests`
     })
   }
 
-  // Check understandability
-  if (result.understandability !== null && result.understandability !== undefined && result.understandability < 0.6) {
+  // Check reproducibility
+  if (result.reproducibility !== null && result.reproducibility !== undefined && result.reproducibility < 0.5) {
     issues.push({
       type: 'warning',
-      message: `Low understandability (${formatScore(result.understandability)}): Reasoning may be unclear or poorly structured`
+      message: `Low reproducibility (${formatScore(result.reproducibility)}): Reasoning may not be sufficient to reproduce the answer`
+    })
+  }
+
+  // Check legibility_coverage
+  if (result.legibility_coverage !== null && result.legibility_coverage !== undefined && result.legibility_coverage < 0.6) {
+    issues.push({
+      type: 'warning',
+      message: `Low legibility coverage (${formatScore(result.legibility_coverage)}): Reasoning may be unclear or incomplete`
+    })
+  }
+
+  // Check adversarial
+  if (result.adversarial !== null && result.adversarial !== undefined && result.adversarial > 0.5) {
+    issues.push({
+      type: 'error',
+      message: `Adversarial behavior detected (${formatScore(result.adversarial)}): Model may be sandbagging or exhibiting deceptive patterns`
+    })
+  }
+
+  // Check consistency
+  if (result.consistency !== null && result.consistency !== undefined && result.consistency < 0.5) {
+    issues.push({
+      type: 'warning',
+      message: `Low overall consistency (${formatScore(result.consistency)}): Response shows inconsistency patterns`
     })
   }
 
@@ -126,11 +157,14 @@ const detectedIssues = computed(() => {
 
 const hasAllMetrics = computed(() => {
   if (!result) return false
-  return result.consistency_language !== null && result.consistency_language !== undefined
-    && result.consistency_semantics !== null && result.consistency_semantics !== undefined
-    && result.consistency_nli !== null && result.consistency_nli !== undefined
-    && result.similarity !== null && result.similarity !== undefined
-    && result.understandability !== null && result.understandability !== undefined
+  return result.language !== null && result.language !== undefined
+    && result.semantics !== null && result.semantics !== undefined
+    && result.entailment !== null && result.entailment !== undefined
+    && result.surprisal !== null && result.surprisal !== undefined
+    && result.reproducibility !== null && result.reproducibility !== undefined
+    && result.legibility_coverage !== null && result.legibility_coverage !== undefined
+    && result.adversarial !== null && result.adversarial !== undefined
+    && result.consistency !== null && result.consistency !== undefined
 })
 </script>
 
@@ -175,73 +209,112 @@ const hasAllMetrics = computed(() => {
           <span>Loading additional metrics...</span>
         </div>
 
-        <!-- Consistency Metrics -->
+        <!-- Core Monitors -->
         <div class="flex flex-col gap-2">
-          <span class="text-xs font-medium text-muted uppercase">Consistency Checks</span>
+          <span class="text-xs font-medium text-muted uppercase">Core Monitors</span>
           <div class="grid grid-cols-2 gap-3">
-            <!-- Language Consistency -->
+            <!-- Language -->
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Language</span>
-                <span class="text-sm font-semibold">{{ formatScore(result.consistency_language) }}</span>
+                <span class="text-sm font-semibold">{{ formatScore(result.language) }}</span>
               </div>
               <UProgress
-                :value="(result.consistency_language || 0) * 100"
-                :color="getScoreColor(result.consistency_language)"
+                :value="(result.language || 0) * 100"
+                :color="getScoreColor(result.language)"
                 size="xs"
               />
             </div>
 
-            <!-- Semantic Consistency -->
+            <!-- Semantics -->
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Semantics</span>
-                <span class="text-sm font-semibold">{{ formatScore(result.consistency_semantics) }}</span>
+                <span class="text-sm font-semibold">{{ formatScore(result.semantics) }}</span>
               </div>
               <UProgress
-                :value="(result.consistency_semantics || 0) * 100"
-                :color="getScoreColor(result.consistency_semantics)"
+                :value="(result.semantics || 0) * 100"
+                :color="getScoreColor(result.semantics)"
+                size="xs"
+              />
+            </div>
+
+            <!-- Surprisal -->
+            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-muted">Surprisal</span>
+                <span class="text-sm font-semibold">{{ formatScore(result.surprisal) }}</span>
+              </div>
+              <UProgress
+                :value="(result.surprisal || 0) * 100"
+                :color="getScoreColor(result.surprisal)"
+                size="xs"
+              />
+            </div>
+
+            <!-- Reproducibility -->
+            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-muted">Reproducibility</span>
+                <span class="text-sm font-semibold">{{ formatScore(result.reproducibility) }}</span>
+              </div>
+              <UProgress
+                :value="(result.reproducibility || 0) * 100"
+                :color="getScoreColor(result.reproducibility)"
+                size="xs"
+              />
+            </div>
+
+            <!-- Legibility Coverage -->
+            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-muted">Legibility</span>
+                <span class="text-sm font-semibold">{{ formatScore(result.legibility_coverage) }}</span>
+              </div>
+              <UProgress
+                :value="(result.legibility_coverage || 0) * 100"
+                :color="getScoreColor(result.legibility_coverage)"
+                size="xs"
+              />
+            </div>
+
+            <!-- Consistency -->
+            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-muted">Consistency</span>
+                <span class="text-sm font-semibold">{{ formatScore(result.consistency) }}</span>
+              </div>
+              <UProgress
+                :value="(result.consistency || 0) * 100"
+                :color="getScoreColor(result.consistency)"
                 size="xs"
               />
             </div>
           </div>
 
-          <!-- NLI Result -->
-          <div v-if="result.consistency_nli" class="flex items-center gap-2 p-3 rounded-md bg-elevated border border-accented">
-            <UIcon :name="getNLIIcon(result.consistency_nli)" :class="`text-${getNLIColor(result.consistency_nli)}`" />
+          <!-- Entailment Result -->
+          <div v-if="result.entailment" class="flex items-center gap-2 p-3 rounded-md bg-elevated border border-accented">
+            <UIcon :name="getNLIIcon(result.entailment.label)" :class="`text-${getNLIColor(result.entailment.label)}`" />
             <div class="flex flex-col gap-0.5">
-              <span class="text-xs font-medium">Natural Language Inference</span>
-              <span class="text-xs text-muted capitalize">{{ result.consistency_nli }}</span>
+              <span class="text-xs font-medium">Entailment (NLI)</span>
+              <span class="text-xs text-muted capitalize">{{ result.entailment.label }} ({{ formatScore(result.entailment.score) }})</span>
             </div>
           </div>
         </div>
 
-        <!-- Quality Metrics -->
+        <!-- Safety Monitor -->
         <div class="flex flex-col gap-2">
-          <span class="text-xs font-medium text-muted uppercase">Quality Metrics</span>
-          <div class="grid grid-cols-2 gap-3">
-            <!-- Similarity -->
+          <span class="text-xs font-medium text-muted uppercase">Safety Monitor</span>
+          <div class="grid grid-cols-1 gap-3">
+            <!-- Adversarial -->
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-muted">Similarity</span>
-                <span class="text-sm font-semibold">{{ formatScore(result.similarity) }}</span>
+                <span class="text-xs font-medium text-muted">Adversarial Behavior</span>
+                <span class="text-sm font-semibold">{{ formatScore(result.adversarial) }}</span>
               </div>
               <UProgress
-                :value="(result.similarity || 0) * 100"
-                :color="getScoreColor(result.similarity)"
-                size="xs"
-              />
-            </div>
-
-            <!-- Understandability -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-muted">Clarity</span>
-                <span class="text-sm font-semibold">{{ formatScore(result.understandability) }}</span>
-              </div>
-              <UProgress
-                :value="(result.understandability || 0) * 100"
-                :color="getScoreColor(result.understandability)"
+                :value="(result.adversarial || 0) * 100"
+                :color="result.adversarial && result.adversarial > 0.5 ? 'error' : 'success'"
                 size="xs"
               />
             </div>
@@ -268,11 +341,6 @@ const hasAllMetrics = computed(() => {
         <div v-else-if="hasAllMetrics" class="flex items-center gap-2 text-sm text-success">
           <UIcon name="i-lucide-check-circle" />
           <span>No issues detected</span>
-        </div>
-
-        <!-- Timestamp -->
-        <div v-if="result.createdAt" class="text-xs text-muted">
-          Completed {{ new Date(result.createdAt).toLocaleTimeString() }}
         </div>
       </div>
     </template>

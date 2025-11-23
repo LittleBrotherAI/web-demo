@@ -1,13 +1,17 @@
 <script setup lang="ts">
 interface MonitoringResult {
   messageId?: string
-  consistency_language?: number | null
-  consistency_semantics?: number | null
-  consistency_nli?: string | null
-  similarity?: number | null
-  understandability?: number | null
-  completed?: boolean
-  createdAt?: string
+  language?: number | null
+  semantics?: number | null
+  entailment?: {
+    score: number
+    label: string
+  } | null
+  surprisal?: number | null
+  reproducibility?: number | null
+  legibility_coverage?: number | null
+  adversarial?: number | null
+  consistency?: number | null
 }
 
 const { result } = defineProps<{
@@ -98,45 +102,63 @@ const open = ref(true)
           <div class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
               <UIcon name="i-lucide-gauge" class="h-4 w-4 text-primary" />
-              <span class="text-xs font-semibold">Metrics Guide</span>
+              <span class="text-xs font-semibold">Monitors Guide</span>
             </div>
             <div class="space-y-2.5">
               <div>
-                <span class="text-xs font-medium block mb-0.5">Consistency Checks</span>
+                <span class="text-xs font-medium block mb-0.5">Core Monitors</span>
                 <div class="space-y-1.5 ml-2">
                   <div class="flex flex-col gap-0.5">
                     <span class="text-xs font-medium text-muted">Language</span>
                     <span class="text-xs text-muted">
-                      Language pattern alignment between reasoning and answer
+                      Detects language switching in model responses
                     </span>
                   </div>
                   <div class="flex flex-col gap-0.5">
                     <span class="text-xs font-medium text-muted">Semantics</span>
                     <span class="text-xs text-muted">
-                      Semantic meaning consistency across reasoning steps
+                      Semantic similarity between reasoning and answer
                     </span>
                   </div>
                   <div class="flex flex-col gap-0.5">
-                    <span class="text-xs font-medium text-muted">NLI</span>
+                    <span class="text-xs font-medium text-muted">Entailment</span>
                     <span class="text-xs text-muted">
-                      Natural Language Inference relationship (entailment/neutral/contradiction)
+                      Verifies answer logically follows from reasoning (NLI)
+                    </span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-medium text-muted">Surprisal</span>
+                    <span class="text-xs text-muted">
+                      Measures how unexpected the answer is given reasoning
+                    </span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-medium text-muted">Reproducibility</span>
+                    <span class="text-xs text-muted">
+                      Tests if reasoning is sufficient to reproduce answer
+                    </span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-medium text-muted">Legibility</span>
+                    <span class="text-xs text-muted">
+                      Measures clarity and completeness of reasoning
+                    </span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-medium text-muted">Consistency</span>
+                    <span class="text-xs text-muted">
+                      Overall consistency across response patterns
                     </span>
                   </div>
                 </div>
               </div>
               <div>
-                <span class="text-xs font-medium block mb-0.5">Quality Metrics</span>
+                <span class="text-xs font-medium block mb-0.5">Safety Monitor</span>
                 <div class="space-y-1.5 ml-2">
                   <div class="flex flex-col gap-0.5">
-                    <span class="text-xs font-medium text-muted">Similarity</span>
+                    <span class="text-xs font-medium text-muted">Adversarial</span>
                     <span class="text-xs text-muted">
-                      Content similarity between reasoning and final answer
-                    </span>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <span class="text-xs font-medium text-muted">Clarity</span>
-                    <span class="text-xs text-muted">
-                      Understandability and structure of the reasoning process
+                      Detects sandbagging, deception, and malicious patterns
                     </span>
                   </div>
                 </div>
