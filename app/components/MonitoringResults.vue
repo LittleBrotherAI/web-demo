@@ -244,6 +244,7 @@ const hasAllMetrics = computed(() => {
                 :value="(props.result.language || 0) * 100"
                 :color="getScoreColor(props.result.language)"
                 size="xs"
+                :animation="false"
               />
             </div>
 
@@ -257,6 +258,7 @@ const hasAllMetrics = computed(() => {
                 :value="(props.result.semantics || 0) * 100"
                 :color="getScoreColor(props.result.semantics)"
                 size="xs"
+                :animation="false"
               />
             </div>
 
@@ -284,6 +286,7 @@ const hasAllMetrics = computed(() => {
                 :value="(props.result.reproducibility || 0) * 100"
                 :color="getScoreColor(props.result.reproducibility)"
                 size="xs"
+                :animation="false"
               />
             </div>
 
@@ -297,6 +300,7 @@ const hasAllMetrics = computed(() => {
                 :value="(props.result.legibility_score || 0) * 25"
                 :color="getScoreColor(props.result.legibility_score)"
                 size="xs"
+                :animation="false"
               />
             </div>
 
@@ -310,6 +314,7 @@ const hasAllMetrics = computed(() => {
                 :value="(props.result.coverage_score || 0) * 25"
                 :color="getScoreColor(props.result.coverage_score)"
                 size="xs"
+                :animation="false"
               />
             </div>
 
@@ -336,6 +341,7 @@ const hasAllMetrics = computed(() => {
                   :value="(props.result.consistency.confidence || 0) * 100"
                   :color="getScoreColor(props.result.consistency.confidence)"
                   size="xs"
+                  :animation="false"
                 />
               </div>
               <div class="flex flex-col gap-1">
@@ -371,6 +377,7 @@ const hasAllMetrics = computed(() => {
                 :value="(props.result.adversarial || 0) * 100"
                 :color="props.result.adversarial && props.result.adversarial > 0.5 ? 'error' : 'success'"
                 size="xs"
+                :animation="false"
               />
             </div>
           </div>
