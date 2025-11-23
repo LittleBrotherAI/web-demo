@@ -9,6 +9,8 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
+  console.log('received POST request at /api/monitor/consistency_nli: ', event)
+
   // Validate incoming JSON body
   const { label, message_id } = await readValidatedBody(
     event,
