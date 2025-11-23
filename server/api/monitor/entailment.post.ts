@@ -50,6 +50,7 @@ export default defineEventHandler(async (event) => {
       label
     })
   }
+  console.log('good life.')
 
   return {
     success: true,
