@@ -18,7 +18,8 @@ export function useModels() {
     // Tier 4 - Open Source
     'meta-llama/llama-3.3-70b-instruct',
     'deepseek/deepseek-r1',
-    'tngtech/deepseek-r1t2-chimera:free'
+    'tngtech/deepseek-r1t2-chimera:free',
+    'x-ai/grok-4.1-fast'
   ]
 
   const model = useCookie<string>('model', { default: () => 'tngtech/deepseek-r1t2-chimera:free' })
