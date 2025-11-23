@@ -100,11 +100,11 @@ const detectedIssues = computed(() => {
     })
   }
 
-  // Check clarity (inverted from surprisal - high surprisal = low clarity)
-  if (props.result.surprisal !== null && props.result.surprisal !== undefined && props.result.surprisal > 0.5) {
+  // Check clarity (monitoring service sends clarity score, not surprisal - high clarity = good)
+  if (props.result.surprisal !== null && props.result.surprisal !== undefined && props.result.surprisal < 0.5) {
     issues.push({
       type: 'warning',
-      message: `Low clarity (${formatScore(1 - props.result.surprisal)}): Answer is unexpectedly different from what reasoning suggests`
+      message: `Low clarity (${formatScore(props.result.surprisal)}): Answer is unexpectedly different from what reasoning suggests`
     })
   }
 

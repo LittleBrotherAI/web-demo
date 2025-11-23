@@ -40,7 +40,10 @@ const progressBarClass = computed(() => {
 })
 
 const progressWidth = computed(() => {
-  return `${(props.score || 0) * 100}%`
+  if (props.score === undefined || props.score === null) return '0%'
+  // For inverted metrics, we need to invert for color but NOT for display width
+  // The score value itself is what we display (e.g., clarity score of 0.8 = 80% bar)
+  return `${props.score * 100}%`
 })
 </script>
 
