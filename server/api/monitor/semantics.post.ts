@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 
 defineRouteMeta({
   openAPI: {
-    description: 'Webhook endpoint for reproducibility monitoring results.',
+    description: 'Webhook endpoint for semantic similarity monitoring results.',
     tags: ['monitoring']
   }
 })
@@ -32,20 +32,20 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Upsert into monitor_reproducibility table
-  const existing = await db.query.monitorReproducibility.findFirst({
-    where: (monitorReproducibility, { eq }) => eq(monitorReproducibility.messageId, message_id)
+  // Upsert into monitor_semantics table
+  const existing = await db.query.monitorSemantics.findFirst({
+    where: (monitorSemantics, { eq }) => eq(monitorSemantics.messageId, message_id)
   })
 
   if (existing) {
     // Update existing record
     await db
-      .update(tables.monitorReproducibility)
+      .update(tables.monitorSemantics)
       .set({ score })
-      .where(eq(tables.monitorReproducibility.messageId, message_id))
+      .where(eq(tables.monitorSemantics.messageId, message_id))
   } else {
     // Insert new record
-    await db.insert(tables.monitorReproducibility).values({
+    await db.insert(tables.monitorSemantics).values({
       messageId: message_id,
       score
     })
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    message: 'Reproducibility monitoring result saved successfully',
+    message: 'Semantics monitoring result saved successfully',
     message_id,
     score
   }

@@ -3,72 +3,61 @@ import { eq } from 'drizzle-orm'
 
 defineRouteMeta({
   openAPI: {
-    description: 'Webhook endpoint for consistency NLI monitoring results.',
+    description: 'Webhook endpoint for entailment (NLI) monitoring results.',
     tags: ['monitoring']
   }
 })
 
 export default defineEventHandler(async (event) => {
-  console.log('received POST request at /api/monitor/consistency_nli: ', event)
-
   // Validate incoming JSON body
-  const { label, message_id } = await readValidatedBody(
+  const { message_id, score, label } = await readValidatedBody(
     event,
     z.object({
-      label: z.string(),
-      message_id: z.string()
+      message_id: z.string().length(36),
+      score: z.number(),
+      label: z.enum(['entailment', 'neutral', 'contradiction'])
     }).parse
   )
 
   const db = useDrizzle()
 
-  // Find the monitoring result record by message_id
-  const monitoringRecord = await db.query.monitoringResults.findFirst({
-    where: (monitoringResults, { eq }) => eq(monitoringResults.messageId, message_id)
+  // Check if message exists
+  const message = await db.query.messages.findFirst({
+    where: (messages, { eq }) => eq(messages.id, message_id)
   })
 
-  if (!monitoringRecord) {
+  if (!message) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Monitoring record not found for the given message_id'
+      statusMessage: 'Message not found for the given message_id'
     })
   }
 
-  // Update the monitoring_results table with the consistency_nli label
-  await db
-    .update(tables.monitoringResults)
-    .set({
-      consistency_nli: label
-    })
-    .where(eq(tables.monitoringResults.messageId, message_id))
-
-  // Check if all monitoring fields are populated to mark as completed
-  // const updatedRecord =
-  await db.query.monitoringResults.findFirst({
-    where: (monitoringResults, { eq }) => eq(monitoringResults.messageId, message_id)
+  // Upsert into monitor_entailment table
+  const existing = await db.query.monitorEntailment.findFirst({
+    where: (monitorEntailment, { eq }) => eq(monitorEntailment.messageId, message_id)
   })
 
-  // If all expected fields are filled, mark as completed
-  // Based on the schema, we expect: consistency_language, consistency_semantics, consistency_nli, similarity, understandability
-  // if (
-  //   updatedRecord &&
-  //   updatedRecord.consistency_language !== null &&
-  //   updatedRecord.consistency_semantics !== null &&
-  //   updatedRecord.consistency_nli !== null &&
-  //   updatedRecord.similarity !== null &&
-  //   updatedRecord.understandability !== null
-  // ) {
-  //   await db
-  //     .update(tables.monitoringResults)
-  //     .set({ completed: true })
-  //     .where(eq(tables.monitoringResults.messageId, message_id))
-  // }
+  if (existing) {
+    // Update existing record
+    await db
+      .update(tables.monitorEntailment)
+      .set({ score, label })
+      .where(eq(tables.monitorEntailment.messageId, message_id))
+  } else {
+    // Insert new record
+    await db.insert(tables.monitorEntailment).values({
+      messageId: message_id,
+      score,
+      label
+    })
+  }
 
-  console.log('   good life.')
   return {
     success: true,
-    message: 'Consistency NLI result saved successfully',
+    message: 'Entailment monitoring result saved successfully',
     message_id,
+    score,
     label
   }
 })
