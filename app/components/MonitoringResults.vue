@@ -100,11 +100,11 @@ const detectedIssues = computed(() => {
     })
   }
 
-  // Check surprisal
+  // Check clarity (inverted from surprisal - high surprisal = low clarity)
   if (props.result.surprisal !== null && props.result.surprisal !== undefined && props.result.surprisal > 0.5) {
     issues.push({
       type: 'warning',
-      message: `High surprisal (${formatScore(props.result.surprisal)}): Answer is unexpectedly different from what reasoning suggests`
+      message: `Low clarity (${formatScore(1 - props.result.surprisal)}): Answer is unexpectedly different from what reasoning suggests`
     })
   }
 
@@ -217,135 +217,36 @@ const hasAllMetrics = computed(() => {
         <div class="flex flex-col gap-2">
           <span class="text-xs font-medium text-muted uppercase">Core Monitors</span>
           <div class="grid grid-cols-1 gap-3">
-            <!-- Language -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-muted">Language</span>
-                <UBadge :color="getScoreColor(props.result.language)" variant="subtle" size="xs">
-                  {{ formatScore(props.result.language) }}
-                </UBadge>
-              </div>
-              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
-                <div
-                  class="h-full transition-all rounded-full"
-                  :class="{
-                    'bg-success': getScoreColor(props.result.language) === 'success',
-                    'bg-warning': getScoreColor(props.result.language) === 'warning',
-                    'bg-error': getScoreColor(props.result.language) === 'error',
-                    'bg-neutral': getScoreColor(props.result.language) === 'neutral'
-                  }"
-                  :style="{ width: `${(props.result.language || 0) * 100}%` }"
-                />
-              </div>
-            </div>
+            <MonitoringMetricCard
+              label="Language"
+              :score="props.result.language"
+            />
 
-            <!-- Semantics -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-muted">Semantics</span>
-                <UBadge :color="getScoreColor(props.result.semantics)" variant="subtle" size="xs">
-                  {{ formatScore(props.result.semantics) }}
-                </UBadge>
-              </div>
-              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
-                <div
-                  class="h-full transition-all rounded-full"
-                  :class="{
-                    'bg-success': getScoreColor(props.result.semantics) === 'success',
-                    'bg-warning': getScoreColor(props.result.semantics) === 'warning',
-                    'bg-error': getScoreColor(props.result.semantics) === 'error',
-                    'bg-neutral': getScoreColor(props.result.semantics) === 'neutral'
-                  }"
-                  :style="{ width: `${(props.result.semantics || 0) * 100}%` }"
-                />
-              </div>
-            </div>
+            <MonitoringMetricCard
+              label="Semantics"
+              :score="props.result.semantics"
+            />
 
-            <!-- Surprisal -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-muted">Surprisal</span>
-                <UBadge :color="props.result.surprisal && props.result.surprisal > 0.5 ? 'warning' : 'success'" variant="subtle" size="xs">
-                  {{ formatScore(props.result.surprisal) }}
-                </UBadge>
-              </div>
-              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
-                <div
-                  class="h-full transition-all rounded-full"
-                  :class="{
-                    'bg-warning': props.result.surprisal && props.result.surprisal > 0.5,
-                    'bg-success': !props.result.surprisal || props.result.surprisal <= 0.5
-                  }"
-                  :style="{ width: `${(props.result.surprisal || 0) * 100}%` }"
-                />
-              </div>
-            </div>
+            <MonitoringMetricCard
+              label="Clarity"
+              :score="props.result.surprisal"
+              inverted
+            />
 
-            <!-- Reproducibility -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-muted">Reproducibility</span>
-                <UBadge :color="getScoreColor(props.result.reproducibility)" variant="subtle" size="xs">
-                  {{ formatScore(props.result.reproducibility) }}
-                </UBadge>
-              </div>
-              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
-                <div
-                  class="h-full transition-all rounded-full"
-                  :class="{
-                    'bg-success': getScoreColor(props.result.reproducibility) === 'success',
-                    'bg-warning': getScoreColor(props.result.reproducibility) === 'warning',
-                    'bg-error': getScoreColor(props.result.reproducibility) === 'error',
-                    'bg-neutral': getScoreColor(props.result.reproducibility) === 'neutral'
-                  }"
-                  :style="{ width: `${(props.result.reproducibility || 0) * 100}%` }"
-                />
-              </div>
-            </div>
+            <MonitoringMetricCard
+              label="Reproducibility"
+              :score="props.result.reproducibility"
+            />
 
-            <!-- Legibility Score -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-muted">Legibility</span>
-                <UBadge :color="getScoreColor(props.result.legibility_score)" variant="subtle" size="xs">
-                  {{ formatScore(props.result.legibility_score) }}
-                </UBadge>
-              </div>
-              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
-                <div
-                  class="h-full transition-all rounded-full"
-                  :class="{
-                    'bg-success': getScoreColor(props.result.legibility_score) === 'success',
-                    'bg-warning': getScoreColor(props.result.legibility_score) === 'warning',
-                    'bg-error': getScoreColor(props.result.legibility_score) === 'error',
-                    'bg-neutral': getScoreColor(props.result.legibility_score) === 'neutral'
-                  }"
-                  :style="{ width: `${(props.result.legibility_score || 0) * 100}%` }"
-                />
-              </div>
-            </div>
+            <MonitoringMetricCard
+              label="Legibility"
+              :score="props.result.legibility_score"
+            />
 
-            <!-- Coverage Score -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-muted">Coverage</span>
-                <UBadge :color="getScoreColor(props.result.coverage_score)" variant="subtle" size="xs">
-                  {{ formatScore(props.result.coverage_score) }}
-                </UBadge>
-              </div>
-              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
-                <div
-                  class="h-full transition-all rounded-full"
-                  :class="{
-                    'bg-success': getScoreColor(props.result.coverage_score) === 'success',
-                    'bg-warning': getScoreColor(props.result.coverage_score) === 'warning',
-                    'bg-error': getScoreColor(props.result.coverage_score) === 'error',
-                    'bg-neutral': getScoreColor(props.result.coverage_score) === 'neutral'
-                  }"
-                  :style="{ width: `${(props.result.coverage_score || 0) * 100}%` }"
-                />
-              </div>
-            </div>
+            <MonitoringMetricCard
+              label="Coverage"
+              :score="props.result.coverage_score"
+            />
 
             <!-- Consistency -->
             <div v-if="props.result.consistency" class="flex flex-col gap-2 p-3 rounded-md bg-elevated border border-accented">
@@ -404,25 +305,11 @@ const hasAllMetrics = computed(() => {
         <div class="flex flex-col gap-2">
           <span class="text-xs font-medium text-muted uppercase">Safety Monitor</span>
           <div class="grid grid-cols-1 gap-3">
-            <!-- Adversarial -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-muted">Adversarial Behavior</span>
-                <UBadge :color="props.result.adversarial && props.result.adversarial > 0.5 ? 'error' : 'success'" variant="subtle" size="xs">
-                  {{ formatScore(props.result.adversarial) }}
-                </UBadge>
-              </div>
-              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
-                <div
-                  class="h-full transition-all rounded-full"
-                  :class="{
-                    'bg-error': props.result.adversarial && props.result.adversarial > 0.5,
-                    'bg-success': !props.result.adversarial || props.result.adversarial <= 0.5
-                  }"
-                  :style="{ width: `${(props.result.adversarial || 0) * 100}%` }"
-                />
-              </div>
-            </div>
+            <MonitoringMetricCard
+              label="Adversarial Behavior"
+              :score="props.result.adversarial"
+              inverted
+            />
           </div>
         </div>
 

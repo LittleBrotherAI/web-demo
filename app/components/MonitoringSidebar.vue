@@ -114,9 +114,9 @@ const open = ref(true)
                     </span>
                   </div>
                   <div class="flex flex-col gap-0.5">
-                    <span class="text-xs font-medium text-muted">Surprisal</span>
+                    <span class="text-xs font-medium text-muted">Clarity</span>
                     <span class="text-xs text-muted">
-                      Measures how unexpected the answer is given reasoning
+                      Measures how clear and expected the answer is given reasoning
                     </span>
                   </div>
                   <div class="flex flex-col gap-0.5">
