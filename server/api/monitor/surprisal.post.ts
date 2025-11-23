@@ -10,11 +10,11 @@ defineRouteMeta({
 
 export default defineEventHandler(async (event) => {
   // Validate incoming JSON body
-  const { message_id, score } = await readValidatedBody(
+  const { message_id, surprisal_score } = await readValidatedBody(
     event,
     z.object({
       message_id: z.string().max(255),
-      score: z.number()
+      surprisal_score: z.boolean()
     }).parse
   )
 
@@ -41,13 +41,13 @@ export default defineEventHandler(async (event) => {
     // Update existing record
     await db
       .update(tables.monitorSurprisal)
-      .set({ score })
+      .set({ surprisal_score })
       .where(eq(tables.monitorSurprisal.messageId, message_id))
   } else {
     // Insert new record
     await db.insert(tables.monitorSurprisal).values({
       messageId: message_id,
-      score
+      surprisal_score
     })
   }
 
@@ -55,6 +55,6 @@ export default defineEventHandler(async (event) => {
     success: true,
     message: 'Surprisal monitoring result saved successfully',
     message_id,
-    score
+    surprisal_score
   }
 })

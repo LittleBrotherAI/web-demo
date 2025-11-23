@@ -4,7 +4,7 @@ interface MonitoringResult {
   language?: number | null
   semantics?: number | null
   entailment?: string | null
-  surprisal?: number | null
+  surprisal?: boolean | null
   reproducibility?: number | null
   legibility_coverage?: number | null
   adversarial?: number | null
@@ -110,10 +110,10 @@ const detectedIssues = computed(() => {
   }
 
   // Check surprisal
-  if (props.result.surprisal !== null && props.result.surprisal !== undefined && props.result.surprisal > 0.7) {
+  if (props.result.surprisal === true) {
     issues.push({
       type: 'warning',
-      message: `High surprisal (${formatScore(props.result.surprisal)}): Answer is unexpectedly different from what reasoning suggests`
+      message: 'High surprisal detected: Answer is unexpectedly different from what reasoning suggests'
     })
   }
 
@@ -237,16 +237,17 @@ const hasAllMetrics = computed(() => {
             </div>
 
             <!-- Surprisal -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
-              <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between p-3 rounded-md bg-elevated border border-accented">
+              <div class="flex items-center gap-2">
+                <UIcon
+                  :name="props.result.surprisal === true ? 'i-lucide-alert-triangle' : props.result.surprisal === false ? 'i-lucide-check-circle' : 'i-lucide-circle'"
+                  :class="props.result.surprisal === true ? 'text-warning' : props.result.surprisal === false ? 'text-success' : 'text-muted'"
+                />
                 <span class="text-xs font-medium text-muted">Surprisal</span>
-                <span class="text-sm font-semibold">{{ formatScore(props.result.surprisal) }}</span>
               </div>
-              <UProgress
-                :value="(props.result.surprisal || 0) * 100"
-                :color="getScoreColor(props.result.surprisal)"
-                size="xs"
-              />
+              <span class="text-sm font-semibold">
+                {{ props.result.surprisal === true ? 'High' : props.result.surprisal === false ? 'Low' : 'N/A' }}
+              </span>
             </div>
 
             <!-- Reproducibility -->

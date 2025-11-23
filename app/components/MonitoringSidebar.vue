@@ -4,7 +4,7 @@ interface MonitoringResult {
   language?: number | null
   semantics?: number | null
   entailment?: string | null
-  surprisal?: number | null
+  surprisal?: boolean | null
   reproducibility?: number | null
   legibility_coverage?: number | null
   adversarial?: number | null

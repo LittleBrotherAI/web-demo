@@ -59,7 +59,7 @@ export default defineEventHandler(async (event) => {
     language: language?.score ?? null,
     semantics: semantics?.score ?? null,
     entailment: entailment?.label ?? null,
-    surprisal: surprisal?.score ?? null,
+    surprisal: surprisal?.surprisal_score ?? null,
     reproducibility: reproducibility?.score ?? null,
     legibility_coverage: legibilityCoverage?.score ?? null,
     adversarial: adversarial?.score ?? null,

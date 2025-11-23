@@ -5,7 +5,8 @@ import {
   timestamp,
   index,
   json,
-  real
+  real,
+  boolean
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
@@ -165,7 +166,7 @@ export const monitorSurprisal = pgTable(
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
-    score: real().notNull()
+    surprisal_score: boolean().notNull()
   },
   table => [index('monitor_surprisal_message_id_idx').on(table.messageId)]
 )
