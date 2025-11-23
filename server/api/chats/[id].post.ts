@@ -207,7 +207,7 @@ export default defineEventHandler(async (event) => {
             console.error('Failed to trigger monitoring service:', error)
           })
         } else {
-          console.warn('MONITORING_SERVICE_URL not configured - skipping monitoring')
+          console.warn('MONITORING_URL not configured - skipping monitoring')
         }
       }
     }
