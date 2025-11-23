@@ -209,7 +209,7 @@ const hasAllMetrics = computed(() => {
         <!-- Core Monitors -->
         <div class="flex flex-col gap-2">
           <span class="text-xs font-medium text-muted uppercase">Core Monitors</span>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 gap-3">
             <!-- Language -->
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">

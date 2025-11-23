@@ -22,8 +22,8 @@ const open = ref(true)
   <UDashboardSidebar
     id="monitoring"
     v-model:open="open"
-    :min-size="18"
-    :max-size="25"
+    :min-size="25"
+    :max-size="35"
     collapsible
     resizable
     position="right"
