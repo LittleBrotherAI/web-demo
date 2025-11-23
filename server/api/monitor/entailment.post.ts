@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
   const { message_id, label } = await readValidatedBody(
     event,
     z.object({
-      message_id: z.string().length(36),
+      message_id: z.string().max(255),
       label: z.string()
     }).parse
   )

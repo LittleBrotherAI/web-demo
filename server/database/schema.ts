@@ -18,7 +18,7 @@ export const roleEnum = pgEnum('role', ['user', 'assistant'])
 export const chats = pgTable(
   'chats',
   {
-    id: varchar({ length: 36 })
+    id: varchar({ length: 255 })
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
     title: varchar({ length: 200 }),
@@ -35,10 +35,10 @@ export const chatsRelations = relations(chats, ({ many }) => ({
 export const messages = pgTable(
   'messages',
   {
-    id: varchar({ length: 36 })
+    id: varchar({ length: 255 })
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    chatId: varchar({ length: 36 })
+    chatId: varchar({ length: 255 })
       .notNull()
       .references(() => chats.id, { onDelete: 'cascade' }),
     role: roleEnum().notNull(),
@@ -92,10 +92,10 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 export const monitorLanguage = pgTable(
   'monitor_language',
   {
-    id: varchar({ length: 36 })
+    id: varchar({ length: 255 })
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    messageId: varchar({ length: 36 })
+    messageId: varchar({ length: 255 })
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
@@ -114,10 +114,10 @@ export const monitorLanguageRelations = relations(monitorLanguage, ({ one }) => 
 export const monitorSemantics = pgTable(
   'monitor_semantics',
   {
-    id: varchar({ length: 36 })
+    id: varchar({ length: 255 })
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    messageId: varchar({ length: 36 })
+    messageId: varchar({ length: 255 })
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
@@ -136,10 +136,10 @@ export const monitorSemanticsRelations = relations(monitorSemantics, ({ one }) =
 export const monitorEntailment = pgTable(
   'monitor_entailment',
   {
-    id: varchar({ length: 36 })
+    id: varchar({ length: 255 })
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    messageId: varchar({ length: 36 })
+    messageId: varchar({ length: 255 })
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
@@ -158,10 +158,10 @@ export const monitorEntailmentRelations = relations(monitorEntailment, ({ one })
 export const monitorSurprisal = pgTable(
   'monitor_surprisal',
   {
-    id: varchar({ length: 36 })
+    id: varchar({ length: 255 })
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    messageId: varchar({ length: 36 })
+    messageId: varchar({ length: 255 })
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
@@ -180,10 +180,10 @@ export const monitorSurprisalRelations = relations(monitorSurprisal, ({ one }) =
 export const monitorReproducibility = pgTable(
   'monitor_reproducibility',
   {
-    id: varchar({ length: 36 })
+    id: varchar({ length: 255 })
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    messageId: varchar({ length: 36 })
+    messageId: varchar({ length: 255 })
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
@@ -202,10 +202,10 @@ export const monitorReproducibilityRelations = relations(monitorReproducibility,
 export const monitorLegibilityCoverage = pgTable(
   'monitor_legibility_coverage',
   {
-    id: varchar({ length: 36 })
+    id: varchar({ length: 255 })
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    messageId: varchar({ length: 36 })
+    messageId: varchar({ length: 255 })
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
@@ -224,10 +224,10 @@ export const monitorLegibilityCoverageRelations = relations(monitorLegibilityCov
 export const monitorAdversarial = pgTable(
   'monitor_adversarial',
   {
-    id: varchar({ length: 36 })
+    id: varchar({ length: 255 })
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    messageId: varchar({ length: 36 })
+    messageId: varchar({ length: 255 })
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
@@ -246,10 +246,10 @@ export const monitorAdversarialRelations = relations(monitorAdversarial, ({ one 
 export const monitorConsistency = pgTable(
   'monitor_consistency',
   {
-    id: varchar({ length: 36 })
+    id: varchar({ length: 255 })
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    messageId: varchar({ length: 36 })
+    messageId: varchar({ length: 255 })
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
