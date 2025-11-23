@@ -105,7 +105,8 @@ async function pollMonitoringResults(messageId: string) {
         legibility_score: result.legibility_score,
         coverage_score: result.coverage_score,
         adversarial: result.adversarial,
-        consistency: result.consistency
+        consistency: result.consistency,
+        factcheck: result.factcheck
       }
     }
   } catch (error) {
@@ -122,7 +123,8 @@ async function pollMonitoringResults(messageId: string) {
         legibility_score: null,
         coverage_score: null,
         adversarial: null,
-        consistency: null
+        consistency: null,
+        factcheck: null
       }
     }
   }
@@ -144,7 +146,8 @@ function startPolling(messageId: string) {
     legibility_score: null,
     coverage_score: null,
     adversarial: null,
-    consistency: null
+    consistency: null,
+    factcheck: null
   }
 
   // Set start time
@@ -200,7 +203,8 @@ watch(() => chat.status, (status) => {
         legibility_score: null,
         coverage_score: null,
         adversarial: null,
-        consistency: null
+        consistency: null,
+        factcheck: null
       }
     }
   }
