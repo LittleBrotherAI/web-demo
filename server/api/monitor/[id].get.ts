@@ -63,7 +63,13 @@ export default defineEventHandler(async (event) => {
     reproducibility: reproducibility?.score ?? null,
     legibility_score: legibilityCoverage?.legibility_score ?? null,
     coverage_score: legibilityCoverage?.coverage_score ?? null,
-    adversarial: adversarial?.score ?? null,
+    adversarial: adversarial
+      ? {
+          is_adversarial: adversarial.isAdversarial,
+          explanation: adversarial.explanation,
+          severity: adversarial.severity
+        }
+      : null,
     consistency: consistency
       ? {
           is_consistent: consistency.isConsistent,

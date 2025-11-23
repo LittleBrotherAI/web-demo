@@ -233,7 +233,9 @@ export const monitorAdversarial = pgTable(
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
-    score: real().notNull()
+    isAdversarial: boolean().notNull(),
+    explanation: varchar({ length: 1000 }).notNull(),
+    severity: varchar({ length: 255 }).notNull()
   },
   table => [index('monitor_adversarial_message_id_idx').on(table.messageId)]
 )

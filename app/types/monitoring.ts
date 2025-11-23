@@ -9,6 +9,12 @@ export interface ConsistencyResult {
   explanation: string
 }
 
+export interface AdversarialResult {
+  is_adversarial: boolean
+  explanation: string
+  severity: string
+}
+
 export interface MonitoringResult {
   messageId?: string
   language?: number | null
@@ -18,6 +24,6 @@ export interface MonitoringResult {
   reproducibility?: number | null
   legibility_score?: number | null
   coverage_score?: number | null
-  adversarial?: number | null
+  adversarial?: AdversarialResult | null
   consistency?: ConsistencyResult | null
 }

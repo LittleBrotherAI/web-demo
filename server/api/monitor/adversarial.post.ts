@@ -10,11 +10,13 @@ defineRouteMeta({
 
 export default defineEventHandler(async (event) => {
   // Validate incoming JSON body
-  const { message_id, score } = await readValidatedBody(
+  const { message_id, is_adversarial, explanation, severity } = await readValidatedBody(
     event,
     z.object({
       message_id: z.string().max(255),
-      score: z.number()
+      is_adversarial: z.boolean(),
+      explanation: z.string(),
+      severity: z.string()
     }).parse
   )
 
@@ -41,13 +43,19 @@ export default defineEventHandler(async (event) => {
     // Update existing record
     await db
       .update(tables.monitorAdversarial)
-      .set({ score })
+      .set({
+        isAdversarial: is_adversarial,
+        explanation,
+        severity
+      })
       .where(eq(tables.monitorAdversarial.messageId, message_id))
   } else {
     // Insert new record
     await db.insert(tables.monitorAdversarial).values({
       messageId: message_id,
-      score
+      isAdversarial: is_adversarial,
+      explanation,
+      severity
     })
   }
 
@@ -55,6 +63,8 @@ export default defineEventHandler(async (event) => {
     success: true,
     message: 'Adversarial monitoring result saved successfully',
     message_id,
-    score
+    is_adversarial,
+    explanation,
+    severity
   }
 })

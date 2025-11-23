@@ -102,11 +102,13 @@ const detectedIssues = computed(() => {
   }
 
   // Check adversarial
-  if (props.result.adversarial !== null && props.result.adversarial !== undefined && props.result.adversarial > 0.5) {
-    issues.push({
-      type: 'error',
-      message: `Adversarial behavior detected (${formatScore(props.result.adversarial)}): Model may be sandbagging or exhibiting deceptive patterns`
-    })
+  if (props.result.adversarial !== null && props.result.adversarial !== undefined) {
+    if (props.result.adversarial.is_adversarial) {
+      issues.push({
+        type: 'error',
+        message: `Adversarial behavior detected (${props.result.adversarial.severity}): ${props.result.adversarial.explanation}`
+      })
+    }
   }
 
   // Check consistency
@@ -269,11 +271,39 @@ const hasAllMetrics = computed(() => {
         <div class="flex flex-col gap-2">
           <span class="text-xs font-medium text-muted uppercase">Safety Monitor</span>
           <div class="grid grid-cols-1 gap-3">
-            <MonitoringMetricCard
-              label="Adversarial Behavior"
-              :score="props.result.adversarial"
-              inverted
-            />
+            <!-- Adversarial Behavior -->
+            <div v-if="props.result.adversarial" class="flex flex-col gap-2 p-3 rounded-md bg-elevated border border-accented">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-muted">Adversarial Behavior</span>
+                <div class="flex items-center gap-2">
+                  <UIcon
+                    :name="props.result.adversarial.is_adversarial ? 'i-lucide-shield-alert' : 'i-lucide-shield-check'"
+                    :class="props.result.adversarial.is_adversarial ? 'text-error' : 'text-success'"
+                  />
+                  <span class="text-sm font-semibold">
+                    {{ props.result.adversarial.is_adversarial ? 'Detected' : 'Safe' }}
+                  </span>
+                </div>
+              </div>
+              <div v-if="props.result.adversarial.is_adversarial" class="flex flex-col gap-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-muted">Severity</span>
+                  <UBadge
+                    :color="props.result.adversarial.severity === 'high' ? 'error' : props.result.adversarial.severity === 'medium' ? 'warning' : 'primary'"
+                    variant="subtle"
+                    size="xs"
+                  >
+                    {{ props.result.adversarial.severity }}
+                  </UBadge>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-xs text-muted">Explanation</span>
+                <p class="text-xs leading-relaxed">
+                  {{ props.result.adversarial.explanation }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
