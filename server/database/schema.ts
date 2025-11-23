@@ -144,7 +144,7 @@ export const monitorEntailment = pgTable(
       .notNull()
       .unique()
       .references(() => messages.id, { onDelete: 'cascade' }),
-    label: varchar({ length: 50 }).notNull()
+    score: real().notNull()
   },
   table => [index('monitor_entailment_message_id_idx').on(table.messageId)]
 )

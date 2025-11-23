@@ -13,7 +13,7 @@ export interface MonitoringResult {
   messageId?: string
   language?: number | null
   semantics?: number | null
-  entailment?: string | null
+  entailment?: number | null
   surprisal?: number | null
   reproducibility?: number | null
   legibility_score?: number | null

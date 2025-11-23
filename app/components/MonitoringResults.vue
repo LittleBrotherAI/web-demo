@@ -39,32 +39,6 @@ function getScoreColor(value?: number | null) {
   return 'error'
 }
 
-function getNLIColor(nli?: string) {
-  switch (nli) {
-    case 'entailment':
-      return 'success'
-    case 'neutral':
-      return 'warning'
-    case 'contradiction':
-      return 'error'
-    default:
-      return 'neutral'
-  }
-}
-
-function getNLIIcon(nli?: string) {
-  switch (nli) {
-    case 'entailment':
-      return 'i-lucide-check-circle'
-    case 'neutral':
-      return 'i-lucide-minus-circle'
-    case 'contradiction':
-      return 'i-lucide-x-circle'
-    default:
-      return 'i-lucide-circle'
-  }
-}
-
 // Computed property to detect issues based on metrics
 const detectedIssues = computed(() => {
   if (!props.result) return []
@@ -87,16 +61,11 @@ const detectedIssues = computed(() => {
     })
   }
 
-  // Check entailment for contradiction
-  if (props.result.entailment === 'contradiction') {
+  // Check entailment
+  if (props.result.entailment !== null && props.result.entailment !== undefined && props.result.entailment < 0.5) {
     issues.push({
-      type: 'error',
-      message: 'Entailment detected contradiction: Answer directly contradicts the reasoning provided'
-    })
-  } else if (props.result.entailment === 'neutral') {
-    issues.push({
-      type: 'info',
-      message: 'Entailment is neutral: Answer is not clearly entailed by the reasoning'
+      type: 'warning',
+      message: `Low entailment score (${formatScore(props.result.entailment)}): Answer may not logically follow from the reasoning`
     })
   }
 
@@ -228,6 +197,11 @@ const hasAllMetrics = computed(() => {
             />
 
             <MonitoringMetricCard
+              label="Entailment"
+              :score="props.result.entailment"
+            />
+
+            <MonitoringMetricCard
               label="Clarity"
               :score="props.result.surprisal"
             />
@@ -287,15 +261,6 @@ const hasAllMetrics = computed(() => {
                   {{ props.result.consistency.explanation }}
                 </p>
               </div>
-            </div>
-          </div>
-
-          <!-- Entailment Result -->
-          <div v-if="props.result.entailment" class="flex items-center gap-2 p-3 rounded-md bg-elevated border border-accented">
-            <UIcon :name="getNLIIcon(props.result.entailment)" :class="`text-${getNLIColor(props.result.entailment)}`" />
-            <div class="flex flex-col gap-0.5">
-              <span class="text-xs font-medium">Entailment (NLI)</span>
-              <span class="text-xs text-muted capitalize">{{ props.result.entailment }}</span>
             </div>
           </div>
         </div>
