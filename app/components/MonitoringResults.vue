@@ -1,12 +1,11 @@
 <script setup lang="ts">
 interface MonitoringResult {
   status: 'pending' | 'completed' | 'failed'
-  coverage?: number
-  legibility?: number
-  issues?: Array<{
-    type: 'warning' | 'error' | 'info'
-    message: string
-  }>
+  consistency_language?: number
+  consistency_semantics?: number
+  consistency_nli?: string
+  similarity?: number
+  understandability?: number
   error?: string
   completedAt?: string
 }
@@ -30,49 +29,106 @@ function getStatusIcon(status: string) {
   }
 }
 
-function getStatusColor(status: string) {
-  switch (status) {
-    case 'pending':
-      return 'primary'
-    case 'completed':
+function formatScore(value?: number) {
+  if (value === undefined) return 'N/A'
+  return `${Math.round(value * 100)}%`
+}
+
+function getScoreColor(value?: number) {
+  if (value === undefined) return 'neutral'
+  if (value >= 0.7) return 'success'
+  if (value >= 0.4) return 'warning'
+  return 'error'
+}
+
+function getNLIColor(nli?: string) {
+  switch (nli) {
+    case 'entailment':
       return 'success'
-    case 'failed':
+    case 'neutral':
+      return 'warning'
+    case 'contradiction':
       return 'error'
     default:
       return 'neutral'
   }
 }
 
-function getIssueIcon(type: string) {
-  switch (type) {
-    case 'error':
-      return 'i-lucide-circle-x'
-    case 'warning':
-      return 'i-lucide-triangle-alert'
-    case 'info':
-      return 'i-lucide-info'
+function getNLIIcon(nli?: string) {
+  switch (nli) {
+    case 'entailment':
+      return 'i-lucide-check-circle'
+    case 'neutral':
+      return 'i-lucide-minus-circle'
+    case 'contradiction':
+      return 'i-lucide-x-circle'
     default:
       return 'i-lucide-circle'
   }
 }
 
-function getIssueColor(type: string) {
-  switch (type) {
-    case 'error':
-      return 'error'
-    case 'warning':
-      return 'warning'
-    case 'info':
-      return 'primary'
-    default:
-      return 'neutral'
-  }
-}
+// Computed property to detect issues based on metrics
+const detectedIssues = computed(() => {
+  if (!result || result.status !== 'completed') return []
 
-function formatPercentage(value?: number) {
-  if (value === undefined) return 'N/A'
-  return `${Math.round(value * 100)}%`
-}
+  const issues: Array<{ type: 'warning' | 'error' | 'info', message: string }> = []
+
+  // Check consistency_language
+  if (result.consistency_language !== undefined && result.consistency_language < 0.5) {
+    issues.push({
+      type: 'warning',
+      message: `Low language consistency (${formatScore(result.consistency_language)}): Answer may not align with reasoning language patterns`
+    })
+  }
+
+  // Check consistency_semantics
+  if (result.consistency_semantics !== undefined && result.consistency_semantics < 0.5) {
+    issues.push({
+      type: 'warning',
+      message: `Low semantic consistency (${formatScore(result.consistency_semantics)}): Answer meaning may differ from reasoning`
+    })
+  }
+
+  // Check NLI for contradiction
+  if (result.consistency_nli === 'contradiction') {
+    issues.push({
+      type: 'error',
+      message: 'NLI detected contradiction: Answer directly contradicts the reasoning provided'
+    })
+  } else if (result.consistency_nli === 'neutral') {
+    issues.push({
+      type: 'info',
+      message: 'NLI is neutral: Answer is not clearly entailed by the reasoning'
+    })
+  }
+
+  // Check similarity
+  if (result.similarity !== undefined && result.similarity < 0.4) {
+    issues.push({
+      type: 'warning',
+      message: `Low similarity (${formatScore(result.similarity)}): Answer content significantly differs from reasoning`
+    })
+  }
+
+  // Check understandability
+  if (result.understandability !== undefined && result.understandability < 0.6) {
+    issues.push({
+      type: 'warning',
+      message: `Low understandability (${formatScore(result.understandability)}): Reasoning may be unclear or poorly structured`
+    })
+  }
+
+  return issues
+})
+
+const hasAllMetrics = computed(() => {
+  if (!result || result.status !== 'completed') return false
+  return result.consistency_language !== undefined
+    && result.consistency_semantics !== undefined
+    && result.consistency_nli !== undefined
+    && result.similarity !== undefined
+    && result.understandability !== undefined
+})
 </script>
 
 <template>
@@ -121,46 +177,94 @@ function formatPercentage(value?: number) {
 
       <!-- Completed State -->
       <div v-else-if="result.status === 'completed'" class="flex flex-col gap-3">
-        <!-- Metrics -->
-        <div class="grid grid-cols-2 gap-3">
-          <!-- Coverage Metric -->
-          <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-medium text-muted">Coverage</span>
-              <span class="text-sm font-semibold">{{ formatPercentage(result.coverage) }}</span>
+        <!-- Progressive Loading Indicator -->
+        <div v-if="!hasAllMetrics" class="flex items-center gap-2 text-xs text-muted">
+          <UIcon name="i-lucide-loader-circle" class="animate-spin h-3 w-3" />
+          <span>Loading additional metrics...</span>
+        </div>
+
+        <!-- Consistency Metrics -->
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-medium text-muted uppercase">Consistency Checks</span>
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Language Consistency -->
+            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-muted">Language</span>
+                <span class="text-sm font-semibold">{{ formatScore(result.consistency_language) }}</span>
+              </div>
+              <UProgress
+                :value="(result.consistency_language || 0) * 100"
+                :color="getScoreColor(result.consistency_language)"
+                size="xs"
+              />
             </div>
-            <UProgress
-              :value="(result.coverage || 0) * 100"
-              :color="(result.coverage || 0) >= 0.7 ? 'success' : (result.coverage || 0) >= 0.4 ? 'warning' : 'error'"
-              size="xs"
-            />
-            <span class="text-xs text-muted">Chain-of-Thought coverage of answer</span>
+
+            <!-- Semantic Consistency -->
+            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-muted">Semantics</span>
+                <span class="text-sm font-semibold">{{ formatScore(result.consistency_semantics) }}</span>
+              </div>
+              <UProgress
+                :value="(result.consistency_semantics || 0) * 100"
+                :color="getScoreColor(result.consistency_semantics)"
+                size="xs"
+              />
+            </div>
           </div>
 
-          <!-- Legibility Metric -->
-          <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-medium text-muted">Legibility</span>
-              <span class="text-sm font-semibold">{{ formatPercentage(result.legibility) }}</span>
+          <!-- NLI Result -->
+          <div v-if="result.consistency_nli" class="flex items-center gap-2 p-3 rounded-md bg-elevated border border-accented">
+            <UIcon :name="getNLIIcon(result.consistency_nli)" :class="`text-${getNLIColor(result.consistency_nli)}`" />
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs font-medium">Natural Language Inference</span>
+              <span class="text-xs text-muted capitalize">{{ result.consistency_nli }}</span>
             </div>
-            <UProgress
-              :value="(result.legibility || 0) * 100"
-              :color="(result.legibility || 0) >= 0.7 ? 'success' : (result.legibility || 0) >= 0.4 ? 'warning' : 'error'"
-              size="xs"
-            />
-            <span class="text-xs text-muted">Reasoning clarity and structure</span>
+          </div>
+        </div>
+
+        <!-- Quality Metrics -->
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-medium text-muted uppercase">Quality Metrics</span>
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Similarity -->
+            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-muted">Similarity</span>
+                <span class="text-sm font-semibold">{{ formatScore(result.similarity) }}</span>
+              </div>
+              <UProgress
+                :value="(result.similarity || 0) * 100"
+                :color="getScoreColor(result.similarity)"
+                size="xs"
+              />
+            </div>
+
+            <!-- Understandability -->
+            <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-muted">Clarity</span>
+                <span class="text-sm font-semibold">{{ formatScore(result.understandability) }}</span>
+              </div>
+              <UProgress
+                :value="(result.understandability || 0) * 100"
+                :color="getScoreColor(result.understandability)"
+                size="xs"
+              />
+            </div>
           </div>
         </div>
 
         <!-- Issues -->
-        <div v-if="result.issues && result.issues.length > 0" class="flex flex-col gap-2">
+        <div v-if="detectedIssues.length > 0" class="flex flex-col gap-2">
           <span class="text-xs font-medium text-muted uppercase">Detected Issues</span>
           <div class="flex flex-col gap-1.5">
             <UAlert
-              v-for="(issue, index) in result.issues"
+              v-for="(issue, index) in detectedIssues"
               :key="index"
-              :icon="getIssueIcon(issue.type)"
-              :color="getIssueColor(issue.type)"
+              :icon="issue.type === 'error' ? 'i-lucide-circle-x' : issue.type === 'warning' ? 'i-lucide-triangle-alert' : 'i-lucide-info'"
+              :color="issue.type === 'error' ? 'error' : issue.type === 'warning' ? 'warning' : 'primary'"
               variant="soft"
               :description="issue.message"
               :ui="{ description: 'text-xs' }"
@@ -169,7 +273,7 @@ function formatPercentage(value?: number) {
         </div>
 
         <!-- Success Message (no issues) -->
-        <div v-else class="flex items-center gap-2 text-sm text-success">
+        <div v-else-if="hasAllMetrics" class="flex items-center gap-2 text-sm text-success">
           <UIcon name="i-lucide-check-circle" />
           <span>No issues detected</span>
         </div>

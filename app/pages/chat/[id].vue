@@ -79,6 +79,7 @@ const latestMonitoringResult = computed(() => {
   if (assistantMessages.length === 0) return null
 
   const latestMessage = assistantMessages[assistantMessages.length - 1]
+  if (!latestMessage) return null
 
   // Mock data - this will be replaced with actual API calls later
   if (chat.status === 'streaming') {
@@ -91,14 +92,11 @@ const latestMonitoringResult = computed(() => {
   return {
     status: 'completed' as const,
     messageId: latestMessage.id,
-    coverage: 0.85,
-    legibility: 0.92,
-    issues: [
-      {
-        type: 'info' as const,
-        message: 'Reasoning shows good logical flow from premises to conclusion'
-      }
-    ],
+    consistency_language: 0.87,
+    consistency_semantics: 0.92,
+    consistency_nli: 'entailment',
+    similarity: 0.78,
+    understandability: 0.85,
     completedAt: new Date().toISOString()
   }
 })

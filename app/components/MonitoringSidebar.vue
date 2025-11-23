@@ -1,19 +1,17 @@
 <script setup lang="ts">
 interface MonitoringResult {
   status: 'pending' | 'completed' | 'failed'
-  coverage?: number
-  legibility?: number
-  issues?: Array<{
-    type: 'warning' | 'error' | 'info'
-    message: string
-  }>
+  consistency_language?: number
+  consistency_semantics?: number
+  consistency_nli?: string
+  similarity?: number
+  understandability?: number
   error?: string
   completedAt?: string
 }
 
-const { result, messageId } = defineProps<{
+const { result } = defineProps<{
   result: MonitoringResult | null
-  messageId?: string
 }>()
 
 const open = ref(true)
@@ -63,8 +61,7 @@ const open = ref(true)
         <!-- Info Card -->
         <UCard
           :ui="{
-            body: { padding: 'p-3 sm:p-3' },
-            rounded: 'rounded-lg'
+            body: 'p-3 sm:p-3'
           }"
         >
           <div class="flex flex-col gap-2">
@@ -95,8 +92,7 @@ const open = ref(true)
         <!-- Metrics Legend -->
         <UCard
           :ui="{
-            body: { padding: 'p-3 sm:p-3' },
-            rounded: 'rounded-lg'
+            body: 'p-3 sm:p-3'
           }"
         >
           <div class="flex flex-col gap-2">
@@ -104,18 +100,46 @@ const open = ref(true)
               <UIcon name="i-lucide-gauge" class="h-4 w-4 text-primary" />
               <span class="text-xs font-semibold">Metrics Guide</span>
             </div>
-            <div class="space-y-2">
-              <div class="flex flex-col gap-0.5">
-                <span class="text-xs font-medium">Coverage</span>
-                <span class="text-xs text-muted">
-                  How much of the final answer is supported by reasoning steps
-                </span>
+            <div class="space-y-2.5">
+              <div>
+                <span class="text-xs font-medium block mb-0.5">Consistency Checks</span>
+                <div class="space-y-1.5 ml-2">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-medium text-muted">Language</span>
+                    <span class="text-xs text-muted">
+                      Language pattern alignment between reasoning and answer
+                    </span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-medium text-muted">Semantics</span>
+                    <span class="text-xs text-muted">
+                      Semantic meaning consistency across reasoning steps
+                    </span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-medium text-muted">NLI</span>
+                    <span class="text-xs text-muted">
+                      Natural Language Inference relationship (entailment/neutral/contradiction)
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div class="flex flex-col gap-0.5">
-                <span class="text-xs font-medium">Legibility</span>
-                <span class="text-xs text-muted">
-                  Clarity and structure of the reasoning process
-                </span>
+              <div>
+                <span class="text-xs font-medium block mb-0.5">Quality Metrics</span>
+                <div class="space-y-1.5 ml-2">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-medium text-muted">Similarity</span>
+                    <span class="text-xs text-muted">
+                      Content similarity between reasoning and final answer
+                    </span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-medium text-muted">Clarity</span>
+                    <span class="text-xs text-muted">
+                      Understandability and structure of the reasoning process
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
