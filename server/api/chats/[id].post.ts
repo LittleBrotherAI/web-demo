@@ -141,27 +141,28 @@ export default defineEventHandler(async (event) => {
         })
       )
     },
-    onFinish: async ({ messages }) => {
-      // store message in database
-      await db.insert(tables.messages).values(
-        messages.map(message => ({
+    onFinish: async ({ messages: finishedMessages }) => {
+      // 1. Store assistant message in database and get returned ID
+      const savedMessages = await db.insert(tables.messages).values(
+        finishedMessages.map(message => ({
           chatId: chat.id,
           role: message.role as 'user' | 'assistant',
           parts: message.parts
         }))
-      )
+      ).returning()
 
-      // ENTRYPOINT:
-      const userMessage = messages.find(m => m.role === 'user')
-      const modelMessage = messages.find(m => m.role === 'assistant')
+      // 2. Get the assistant message from both the callback and database
+      const modelMessage = finishedMessages.find(m => m.role === 'assistant')
+      const assistantDbMessage = savedMessages.find(m => m.role === 'assistant')
 
-      if (userMessage && modelMessage) {
-        const monitoringUrl = process.env.MONITORING_URL // the python api
+      // 3. Get the user prompt from the original messages array (from request body)
+      const lastUserMessage = messages[messages.length - 1]
+      const userPrompt = lastUserMessage?.role === 'user'
+        ? lastUserMessage.parts.filter(part => part.type === 'text').map(part => part.text).join('')
+        : ''
 
-        const userPrompt = userMessage.parts
-          .filter(part => part.type === 'text')
-          .map(part => part.text)
-          .join('')
+      if (modelMessage && assistantDbMessage && userPrompt) {
+        const monitoringServiceUrl = process.env.MONITORING_URL
 
         const modelCot = modelMessage.parts
           .filter(part => part.type === 'reasoning')
@@ -173,20 +174,40 @@ export default defineEventHandler(async (event) => {
           .map(part => part.text)
           .join('\n')
 
-        if (monitoringUrl) {
-          console.log('sending msg to be factchecked.')
-          $fetch('/api/monitor/factcheck', {
-            baseURL: monitoringUrl,
+        // 3. Create monitoring record with completed=false
+        await db.insert(tables.monitoringResults).values({
+          messageId: assistantDbMessage.id,
+          chatId: chat.id,
+          completed: false
+        })
+
+        // 4. Send POST request to monitoring service (fire-and-forget)
+        if (monitoringServiceUrl) {
+          const requestUrl = getRequestURL(event)
+          const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`
+
+          console.log('Triggering monitoring for message:', assistantDbMessage.id)
+
+          $fetch(monitoringServiceUrl, {
             method: 'POST',
             body: {
-              user_prompt: userPrompt,
-              model_cot: modelCot,
-              model_answer: modelAnswer
-              // meta data?
+              prompt: userPrompt,
+              reasoning: modelCot,
+              answer: modelAnswer,
+              message_id: assistantDbMessage.id,
+              callback_urls: {
+                consistency_language: `${baseUrl}/api/monitor/consistency_language`,
+                consistency_semantics: `${baseUrl}/api/monitor/consistency_semantics`,
+                consistency_nli: `${baseUrl}/api/monitor/consistency_nli`,
+                similarity: `${baseUrl}/api/monitor/similarity`,
+                understandability: `${baseUrl}/api/monitor/understandability`
+              }
             }
           }).catch((error) => {
-            console.error('failed to send to monitoring api:', error)
+            console.error('Failed to trigger monitoring service:', error)
           })
+        } else {
+          console.warn('MONITORING_SERVICE_URL not configured - skipping monitoring')
         }
       }
     }
