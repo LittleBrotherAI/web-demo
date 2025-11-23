@@ -15,6 +15,11 @@ export interface AdversarialResult {
   severity: string
 }
 
+export interface FactcheckResult {
+  correctness_score: number
+  explanation: string
+}
+
 export interface MonitoringResult {
   messageId?: string
   language?: number | null
@@ -26,4 +31,5 @@ export interface MonitoringResult {
   coverage_score?: number | null
   adversarial?: AdversarialResult | null
   consistency?: ConsistencyResult | null
+  factcheck?: FactcheckResult | null
 }

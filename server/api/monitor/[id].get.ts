@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
   const db = useDrizzle()
 
-  // Query all 8 monitor tables in parallel
+  // Query all 9 monitor tables in parallel
   const [
     language,
     semantics,
@@ -26,7 +26,8 @@ export default defineEventHandler(async (event) => {
     reproducibility,
     legibilityCoverage,
     adversarial,
-    consistency
+    consistency,
+    factcheck
   ] = await Promise.all([
     db.query.monitorLanguage.findFirst({
       where: (monitorLanguage, { eq }) => eq(monitorLanguage.messageId, id)
@@ -51,6 +52,9 @@ export default defineEventHandler(async (event) => {
     }),
     db.query.monitorConsistency.findFirst({
       where: (monitorConsistency, { eq }) => eq(monitorConsistency.messageId, id)
+    }),
+    db.query.monitorFactcheck.findFirst({
+      where: (monitorFactcheck, { eq }) => eq(monitorFactcheck.messageId, id)
     })
   ])
 
@@ -75,6 +79,12 @@ export default defineEventHandler(async (event) => {
           is_consistent: consistency.isConsistent,
           confidence: consistency.confidence,
           explanation: consistency.explanation
+        }
+      : null,
+    factcheck: factcheck
+      ? {
+          correctness_score: factcheck.correctness_score,
+          explanation: factcheck.explanation
         }
       : null
   }

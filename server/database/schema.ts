@@ -85,6 +85,10 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   monitorConsistency: one(monitorConsistency, {
     fields: [messages.id],
     references: [monitorConsistency.messageId]
+  }),
+  monitorFactcheck: one(monitorFactcheck, {
+    fields: [messages.id],
+    references: [monitorFactcheck.messageId]
   })
 }))
 
@@ -267,6 +271,29 @@ export const monitorConsistency = pgTable(
 export const monitorConsistencyRelations = relations(monitorConsistency, ({ one }) => ({
   message: one(messages, {
     fields: [monitorConsistency.messageId],
+    references: [messages.id]
+  })
+}))
+
+export const monitorFactcheck = pgTable(
+  'monitor_factcheck',
+  {
+    id: varchar({ length: 255 })
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    messageId: varchar({ length: 255 })
+      .notNull()
+      .unique()
+      .references(() => messages.id, { onDelete: 'cascade' }),
+    correctness_score: real().notNull(),
+    explanation: varchar({ length: 1000 }).notNull()
+  },
+  table => [index('monitor_factcheck_message_id_idx').on(table.messageId)]
+)
+
+export const monitorFactcheckRelations = relations(monitorFactcheck, ({ one }) => ({
+  message: one(messages, {
+    fields: [monitorFactcheck.messageId],
     references: [messages.id]
   })
 }))

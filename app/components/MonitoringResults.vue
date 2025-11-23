@@ -20,6 +20,7 @@ const isPending = computed(() => {
     && props.result.coverage_score === null
     && props.result.adversarial === null
     && props.result.consistency === null
+    && props.result.factcheck === null
 })
 
 function getStatusIcon() {
@@ -126,6 +127,21 @@ const detectedIssues = computed(() => {
     }
   }
 
+  // Check factcheck
+  if (props.result.factcheck !== null && props.result.factcheck !== undefined) {
+    if (props.result.factcheck.correctness_score < 0.5) {
+      issues.push({
+        type: 'error',
+        message: `Low factual correctness (${formatScore(props.result.factcheck.correctness_score)}): ${props.result.factcheck.explanation}`
+      })
+    } else if (props.result.factcheck.correctness_score < 0.7) {
+      issues.push({
+        type: 'warning',
+        message: `Moderate factual correctness (${formatScore(props.result.factcheck.correctness_score)}): ${props.result.factcheck.explanation}`
+      })
+    }
+  }
+
   return issues
 })
 
@@ -140,6 +156,7 @@ const hasAllMetrics = computed(() => {
     && props.result.coverage_score !== null && props.result.coverage_score !== undefined
     && props.result.adversarial !== null && props.result.adversarial !== undefined
     && props.result.consistency !== null && props.result.consistency !== undefined
+    && props.result.factcheck !== null && props.result.factcheck !== undefined
 })
 </script>
 
@@ -301,6 +318,48 @@ const hasAllMetrics = computed(() => {
                 <span class="text-xs text-muted">Explanation</span>
                 <p class="text-xs leading-relaxed">
                   {{ props.result.adversarial.explanation }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Fact Check -->
+            <div v-if="props.result.factcheck" class="flex flex-col gap-2 p-3 rounded-md bg-elevated border border-accented">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-muted">Fact Check</span>
+                <div class="flex items-center gap-2">
+                  <UIcon
+                    :name="props.result.factcheck.correctness_score >= 0.7 ? 'i-lucide-check-circle-2' : props.result.factcheck.correctness_score >= 0.5 ? 'i-lucide-alert-circle' : 'i-lucide-x-circle'"
+                    :class="props.result.factcheck.correctness_score >= 0.7 ? 'text-success' : props.result.factcheck.correctness_score >= 0.5 ? 'text-warning' : 'text-error'"
+                  />
+                  <span class="text-sm font-semibold">
+                    {{ props.result.factcheck.correctness_score >= 0.7 ? 'Verified' : props.result.factcheck.correctness_score >= 0.5 ? 'Uncertain' : 'Incorrect' }}
+                  </span>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-muted">Correctness</span>
+                  <UBadge :color="getScoreColor(props.result.factcheck.correctness_score)" variant="subtle" size="xs">
+                    {{ formatScore(props.result.factcheck.correctness_score) }}
+                  </UBadge>
+                </div>
+                <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+                  <div
+                    class="h-full transition-all rounded-full"
+                    :class="{
+                      'bg-success': getScoreColor(props.result.factcheck.correctness_score) === 'success',
+                      'bg-warning': getScoreColor(props.result.factcheck.correctness_score) === 'warning',
+                      'bg-error': getScoreColor(props.result.factcheck.correctness_score) === 'error',
+                      'bg-neutral': getScoreColor(props.result.factcheck.correctness_score) === 'neutral'
+                    }"
+                    :style="{ width: `${(props.result.factcheck.correctness_score || 0) * 100}%` }"
+                  />
+                </div>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-xs text-muted">Explanation</span>
+                <p class="text-xs leading-relaxed">
+                  {{ props.result.factcheck.explanation }}
                 </p>
               </div>
             </div>

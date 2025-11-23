@@ -71,6 +71,13 @@
       "when": 1763937490297,
       "tag": "0009_daily_junta",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1763940395929,
+      "tag": "0010_dizzy_wendell_vaughn",
+      "breakpoints": true
     }
   ]
 }
