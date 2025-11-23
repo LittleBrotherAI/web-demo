@@ -83,6 +83,7 @@ export default defineEventHandler(async (event) => {
   const lastMessage = messages[messages.length - 1]
   if (lastMessage?.role === 'user' && messages.length > 1) {
     await db.insert(tables.messages).values({
+      id: lastMessage.id, // Use client-side message ID
       chatId: id as string,
       role: 'user',
       parts: lastMessage.parts
@@ -142,9 +143,10 @@ export default defineEventHandler(async (event) => {
       )
     },
     onFinish: async ({ messages: finishedMessages }) => {
-      // 1. Store assistant message in database and get returned ID
+      // 1. Store assistant message in database using client-side message IDs
       const savedMessages = await db.insert(tables.messages).values(
         finishedMessages.map(message => ({
+          id: message.id, // Use client-side message ID to ensure consistency
           chatId: chat.id,
           role: message.role as 'user' | 'assistant',
           parts: message.parts
