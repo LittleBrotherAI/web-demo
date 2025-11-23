@@ -7,7 +7,7 @@ A realtime monitoring system which detects sandbagging, inconsistency and advers
 
 - language
 - semantics
-- nli
+- entailment
 - surprisal
 - reproducibility
 - coverage

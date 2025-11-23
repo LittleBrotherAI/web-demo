@@ -10,12 +10,11 @@ defineRouteMeta({
 
 export default defineEventHandler(async (event) => {
   // Validate incoming JSON body
-  const { message_id, score, label } = await readValidatedBody(
+  const { message_id, label } = await readValidatedBody(
     event,
     z.object({
       message_id: z.string().length(36),
-      score: z.number(),
-      label: z.enum(['entailment', 'neutral', 'contradiction'])
+      label: z.string()
     }).parse
   )
 
@@ -42,13 +41,12 @@ export default defineEventHandler(async (event) => {
     // Update existing record
     await db
       .update(tables.monitorEntailment)
-      .set({ score, label })
+      .set({ label })
       .where(eq(tables.monitorEntailment.messageId, message_id))
   } else {
     // Insert new record
     await db.insert(tables.monitorEntailment).values({
       messageId: message_id,
-      score,
       label
     })
   }
@@ -57,7 +55,6 @@ export default defineEventHandler(async (event) => {
     success: true,
     message: 'Entailment monitoring result saved successfully',
     message_id,
-    score,
     label
   }
 })

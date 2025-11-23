@@ -1,0 +1,1 @@
+ALTER TABLE "monitor_entailment" DROP COLUMN "score";

@@ -3,10 +3,7 @@ interface MonitoringResult {
   messageId?: string
   language?: number | null
   semantics?: number | null
-  entailment?: {
-    score: number
-    label: string
-  } | null
+  entailment?: string | null
   surprisal?: number | null
   reproducibility?: number | null
   legibility_coverage?: number | null

@@ -3,10 +3,7 @@ interface MonitoringResult {
   messageId?: string
   language?: number | null
   semantics?: number | null
-  entailment?: {
-    score: number
-    label: string
-  } | null
+  entailment?: string | null
   surprisal?: number | null
   reproducibility?: number | null
   legibility_coverage?: number | null
@@ -100,12 +97,12 @@ const detectedIssues = computed(() => {
   }
 
   // Check entailment for contradiction
-  if (result.entailment?.label === 'contradiction') {
+  if (result.entailment === 'contradiction') {
     issues.push({
       type: 'error',
       message: 'Entailment detected contradiction: Answer directly contradicts the reasoning provided'
     })
-  } else if (result.entailment?.label === 'neutral') {
+  } else if (result.entailment === 'neutral') {
     issues.push({
       type: 'info',
       message: 'Entailment is neutral: Answer is not clearly entailed by the reasoning'
@@ -294,10 +291,10 @@ const hasAllMetrics = computed(() => {
 
           <!-- Entailment Result -->
           <div v-if="result.entailment" class="flex items-center gap-2 p-3 rounded-md bg-elevated border border-accented">
-            <UIcon :name="getNLIIcon(result.entailment.label)" :class="`text-${getNLIColor(result.entailment.label)}`" />
+            <UIcon :name="getNLIIcon(result.entailment)" :class="`text-${getNLIColor(result.entailment)}`" />
             <div class="flex flex-col gap-0.5">
               <span class="text-xs font-medium">Entailment (NLI)</span>
-              <span class="text-xs text-muted capitalize">{{ result.entailment.label }} ({{ formatScore(result.entailment.score) }})</span>
+              <span class="text-xs text-muted capitalize">{{ result.entailment }}</span>
             </div>
           </div>
         </div>
