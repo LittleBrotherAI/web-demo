@@ -238,78 +238,130 @@ const hasAllMetrics = computed(() => {
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Language</span>
-                <span class="text-sm font-semibold">{{ formatScore(props.result.language) }}</span>
+                <UBadge :color="getScoreColor(props.result.language)" variant="subtle" size="xs">
+                  {{ formatScore(props.result.language) }}
+                </UBadge>
               </div>
-              <UProgress
-                :value="(props.result.language || 0) * 100"
-                :color="getScoreColor(props.result.language)"
-                size="xs"
-              />
+              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+                <div
+                  class="h-full transition-all rounded-full"
+                  :class="{
+                    'bg-success': getScoreColor(props.result.language) === 'success',
+                    'bg-warning': getScoreColor(props.result.language) === 'warning',
+                    'bg-error': getScoreColor(props.result.language) === 'error',
+                    'bg-neutral': getScoreColor(props.result.language) === 'neutral'
+                  }"
+                  :style="{ width: `${(props.result.language || 0) * 100}%` }"
+                />
+              </div>
             </div>
 
             <!-- Semantics -->
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Semantics</span>
-                <span class="text-sm font-semibold">{{ formatScore(props.result.semantics) }}</span>
+                <UBadge :color="getScoreColor(props.result.semantics)" variant="subtle" size="xs">
+                  {{ formatScore(props.result.semantics) }}
+                </UBadge>
               </div>
-              <UProgress
-                :value="(props.result.semantics || 0) * 100"
-                :color="getScoreColor(props.result.semantics)"
-                size="xs"
-              />
+              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+                <div
+                  class="h-full transition-all rounded-full"
+                  :class="{
+                    'bg-success': getScoreColor(props.result.semantics) === 'success',
+                    'bg-warning': getScoreColor(props.result.semantics) === 'warning',
+                    'bg-error': getScoreColor(props.result.semantics) === 'error',
+                    'bg-neutral': getScoreColor(props.result.semantics) === 'neutral'
+                  }"
+                  :style="{ width: `${(props.result.semantics || 0) * 100}%` }"
+                />
+              </div>
             </div>
 
             <!-- Surprisal -->
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Surprisal</span>
-                <span class="text-sm font-semibold">{{ formatScore(props.result.surprisal) }}</span>
+                <UBadge :color="props.result.surprisal && props.result.surprisal > 0.5 ? 'warning' : 'success'" variant="subtle" size="xs">
+                  {{ formatScore(props.result.surprisal) }}
+                </UBadge>
               </div>
-              <UProgress
-                :value="(props.result.surprisal || 0) * 100"
-                :color="props.result.surprisal && props.result.surprisal > 0.5 ? 'warning' : 'success'"
-                size="xs"
-              />
+              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+                <div
+                  class="h-full transition-all rounded-full"
+                  :class="{
+                    'bg-warning': props.result.surprisal && props.result.surprisal > 0.5,
+                    'bg-success': !props.result.surprisal || props.result.surprisal <= 0.5
+                  }"
+                  :style="{ width: `${(props.result.surprisal || 0) * 100}%` }"
+                />
+              </div>
             </div>
 
             <!-- Reproducibility -->
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Reproducibility</span>
-                <span class="text-sm font-semibold">{{ formatScore(props.result.reproducibility) }}</span>
+                <UBadge :color="getScoreColor(props.result.reproducibility)" variant="subtle" size="xs">
+                  {{ formatScore(props.result.reproducibility) }}
+                </UBadge>
               </div>
-              <UProgress
-                :value="(props.result.reproducibility || 0) * 100"
-                :color="getScoreColor(props.result.reproducibility)"
-                size="xs"
-              />
+              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+                <div
+                  class="h-full transition-all rounded-full"
+                  :class="{
+                    'bg-success': getScoreColor(props.result.reproducibility) === 'success',
+                    'bg-warning': getScoreColor(props.result.reproducibility) === 'warning',
+                    'bg-error': getScoreColor(props.result.reproducibility) === 'error',
+                    'bg-neutral': getScoreColor(props.result.reproducibility) === 'neutral'
+                  }"
+                  :style="{ width: `${(props.result.reproducibility || 0) * 100}%` }"
+                />
+              </div>
             </div>
 
             <!-- Legibility Score -->
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Legibility</span>
-                <span class="text-sm font-semibold">{{ formatScore(props.result.legibility_score) }}</span>
+                <UBadge :color="getScoreColor(props.result.legibility_score)" variant="subtle" size="xs">
+                  {{ formatScore(props.result.legibility_score) }}
+                </UBadge>
               </div>
-              <UProgress
-                :value="(props.result.legibility_score || 0) * 25"
-                :color="getScoreColor(props.result.legibility_score)"
-                size="xs"
-              />
+              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+                <div
+                  class="h-full transition-all rounded-full"
+                  :class="{
+                    'bg-success': getScoreColor(props.result.legibility_score) === 'success',
+                    'bg-warning': getScoreColor(props.result.legibility_score) === 'warning',
+                    'bg-error': getScoreColor(props.result.legibility_score) === 'error',
+                    'bg-neutral': getScoreColor(props.result.legibility_score) === 'neutral'
+                  }"
+                  :style="{ width: `${(props.result.legibility_score || 0) * 100}%` }"
+                />
+              </div>
             </div>
 
             <!-- Coverage Score -->
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Coverage</span>
-                <span class="text-sm font-semibold">{{ formatScore(props.result.coverage_score) }}</span>
+                <UBadge :color="getScoreColor(props.result.coverage_score)" variant="subtle" size="xs">
+                  {{ formatScore(props.result.coverage_score) }}
+                </UBadge>
               </div>
-              <UProgress
-                :value="(props.result.coverage_score || 0) * 25"
-                :color="getScoreColor(props.result.coverage_score)"
-                size="xs"
-              />
+              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+                <div
+                  class="h-full transition-all rounded-full"
+                  :class="{
+                    'bg-success': getScoreColor(props.result.coverage_score) === 'success',
+                    'bg-warning': getScoreColor(props.result.coverage_score) === 'warning',
+                    'bg-error': getScoreColor(props.result.coverage_score) === 'error',
+                    'bg-neutral': getScoreColor(props.result.coverage_score) === 'neutral'
+                  }"
+                  :style="{ width: `${(props.result.coverage_score || 0) * 100}%` }"
+                />
+              </div>
             </div>
 
             <!-- Consistency -->
@@ -329,13 +381,22 @@ const hasAllMetrics = computed(() => {
               <div class="flex flex-col gap-1.5">
                 <div class="flex items-center justify-between">
                   <span class="text-xs text-muted">Confidence</span>
-                  <span class="text-xs font-medium">{{ formatScore(props.result.consistency.confidence) }}</span>
+                  <UBadge :color="getScoreColor(props.result.consistency.confidence)" variant="subtle" size="xs">
+                    {{ formatScore(props.result.consistency.confidence) }}
+                  </UBadge>
                 </div>
-                <UProgress
-                  :value="(props.result.consistency.confidence || 0) * 100"
-                  :color="getScoreColor(props.result.consistency.confidence)"
-                  size="xs"
-                />
+                <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+                  <div
+                    class="h-full transition-all rounded-full"
+                    :class="{
+                      'bg-success': getScoreColor(props.result.consistency.confidence) === 'success',
+                      'bg-warning': getScoreColor(props.result.consistency.confidence) === 'warning',
+                      'bg-error': getScoreColor(props.result.consistency.confidence) === 'error',
+                      'bg-neutral': getScoreColor(props.result.consistency.confidence) === 'neutral'
+                    }"
+                    :style="{ width: `${(props.result.consistency.confidence || 0) * 100}%` }"
+                  />
+                </div>
               </div>
               <div class="flex flex-col gap-1">
                 <span class="text-xs text-muted">Explanation</span>
@@ -364,13 +425,20 @@ const hasAllMetrics = computed(() => {
             <div class="flex flex-col gap-1.5 p-3 rounded-md bg-elevated border border-accented">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-muted">Adversarial Behavior</span>
-                <span class="text-sm font-semibold">{{ formatScore(props.result.adversarial) }}</span>
+                <UBadge :color="props.result.adversarial && props.result.adversarial > 0.5 ? 'error' : 'success'" variant="subtle" size="xs">
+                  {{ formatScore(props.result.adversarial) }}
+                </UBadge>
               </div>
-              <UProgress
-                :value="(props.result.adversarial || 0) * 100"
-                :color="props.result.adversarial && props.result.adversarial > 0.5 ? 'error' : 'success'"
-                size="xs"
-              />
+              <div class="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+                <div
+                  class="h-full transition-all rounded-full"
+                  :class="{
+                    'bg-error': props.result.adversarial && props.result.adversarial > 0.5,
+                    'bg-success': !props.result.adversarial || props.result.adversarial <= 0.5
+                  }"
+                  :style="{ width: `${(props.result.adversarial || 0) * 100}%` }"
+                />
+              </div>
             </div>
           </div>
         </div>
